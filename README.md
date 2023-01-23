@@ -20,5 +20,5 @@ pacman -S raylib gcc
 If you want to compile this on Windows, Have fun.
 	
 <br/>
-Legal
+Legal <br/>
 All files in this repository are licensed under the GPL-v3
