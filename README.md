@@ -1,6 +1,7 @@
 # Unnamed Platformer
-A work-in-progress platformer
-
+A LOST-CAUSE platformer <br/>
+RAYLIB DOES NOT ALLOW FOR MULTITHREADING. BECAUSE OF THIS, THE PRIMARY CONTRIBUTOR IS GIVING UP ON THIS PROJECT
+<br/>
 
 Compilation Instructions:
 -----------------------------------------------
