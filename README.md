@@ -1,6 +1,6 @@
 # Unnamed Platformer
-A LOST-CAUSE platformer <br/>
-RAYLIB DOES NOT ALLOW FOR MULTITHREADING. BECAUSE OF THIS, THE PRIMARY CONTRIBUTOR IS GIVING UP ON THIS PROJECT
+A platformer <br/>
+
 <br/>
 
 Compilation Instructions:
@@ -15,6 +15,10 @@ To install all dependencies in one command:
   ```
 Arch Based:
 pacman -S raylib gcc
+  ```
+
+  ```
+g++ finalRefactor.cpp -lraylib -O3
   ```
 
 <br/>
