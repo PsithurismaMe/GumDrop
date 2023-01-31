@@ -19,6 +19,12 @@
 		128, 0, 64, 64 \
 	}
 
+#define QUITBUTTONUNHIGHLIGHTED     \
+	{                  \
+		0, 64, 128, 64 \
+	}
+#define QUITBUTTONHIGHLIGHTED {128, 64, 128, 64};
+
 namespace game
 {
 	class intVector2
@@ -329,7 +335,7 @@ namespace game
 					i == highlighted ? prependable = "[X] " : prependable = "";
 					content += prependable + variables.at(i) + ": " + std::to_string(*(pointers.at(i))) + '\n';
 				}
-				DrawText(content.c_str(), 20, 20, 20, BLUE);
+				DrawText(content.c_str(), 20, 20, 20, {170, 255, 255, 255});
 			}
 			debugMenu()
 			{
@@ -348,14 +354,45 @@ namespace game
 			}
 		};
 	}
+	class UIbutton
+	{
+		public:
+		Rectangle sourceUnhighlighted;
+		Rectangle sourceHighlighted;
+		Vector2 destination;
+		bool isHighlighted {0};
+		Rectangle source(Vector2 mousePos, Camera2D & camera)
+		{
+			isHighlighted = CheckCollisionPointRec(GetScreenToWorld2D(mousePos, camera), {destination.x, destination.y, sourceHighlighted.width, sourceHighlighted.height});
+			if (isHighlighted)
+			{
+				return (sourceHighlighted);
+			}
+			else
+			{
+				return (sourceUnhighlighted);
+			}
+		}
+		void whenClicked()
+		{
+
+		}
+		
+	};
 	class PauseMenu
 	{
 	public:
 		bool isOpen{0};
 		bool gameShouldPauseWhenOpened{1};
 		int keyToOpen{KEY_ESCAPE};
+		UIbutton quit;
+		Vector2 mousePos;
+		Camera2D otherCamera;
 		void alternateRender(Player &player, Level &level, Screen &screen, debugging::debugMenu &debugs)
 		{
+			mousePos = GetMousePosition();
+			otherCamera.offset = screen.camera.offset;
+			otherCamera.zoom = screen.camera.zoom * 2;
 			BeginDrawing();
 			ClearBackground(screen.background);
 			debugs.drawSelf();
@@ -364,13 +401,28 @@ namespace game
 			level.drawSelf(screen);
 			EndMode2D();
 			DrawRectangle(0, 0, screen.dimentions.x, screen.dimentions.y, {0, 50, 0, 30});
-			DrawText("PAUSED", screen.dimentions.x - 100 - MeasureText("PAUSED", 50), screen.dimentions.y - 100, 50, GREEN);
+			BeginMode2D(otherCamera);
+			DrawTextureRec(screen.spriteSheet, quit.source(mousePos, otherCamera), quit.destination, WHITE);
+			EndMode2D();
+			DrawText("PAUSED", (screen.dimentions.x / 2 ) - (MeasureText("PAUSED", 50) / 2), screen.dimentions.y * 0.1f, 50, {170, 255, 255, 255});
 			EndDrawing();
 			// Handle inputs
 			if (IsKeyPressed(keyToOpen))
 			{
 				isOpen = !isOpen;
 			}
+			if (quit.isHighlighted && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+			{
+				screen.isRunning = 0;
+			}
+
+		}
+		PauseMenu()
+		{
+			quit.sourceHighlighted = QUITBUTTONHIGHLIGHTED;
+			quit.sourceUnhighlighted = QUITBUTTONUNHIGHLIGHTED;
+			quit.destination = {436, 600};
+			otherCamera.target = {500, 500};
 		}
 	};
 	struct animatedText
@@ -465,7 +517,7 @@ namespace game
 				case KEY_M:
 				{
 					std::string filename = "levels/" + std::to_string(saveName) + ".level";
-					std::ofstream output(filename, std::ios::ate);
+					std::ofstream output(filename, std::ios::trunc);
 					if (!output.is_open())
 					{
 						std::cerr << "Something went wrong" << '\n';
@@ -586,7 +638,7 @@ int main()
 		debugMenu.pointers.at(4) = &test.saveName;
 		debugMenu.pointers.at(5) = &test.loadNumber;
 
-		while (!WindowShouldClose())
+		while (!WindowShouldClose() && mainScreen.isRunning)
 		{
 			frameDelta = GetFrameTime();
 			mainScreen.updateWindow();
