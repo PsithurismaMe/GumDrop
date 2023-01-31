@@ -4,6 +4,8 @@
 #include <thread>
 #include <string>
 #include <cmath>
+#include <fstream>
+
 #define GRASSTEXTURE \
 	{                \
 		0, 0, 64, 64 \
@@ -70,6 +72,7 @@ namespace game
 			background.b = 30;
 			background.a = 255;
 			camera.target = {0, 0};
+			SetExitKey(-1);
 		}
 		~Screen()
 		{
@@ -185,6 +188,7 @@ namespace game
 	public:
 		Vector2 playerStartingPosition;
 		std::vector<Block> matter;
+		Color inheritableColor;
 		void clearAll() // Clears everything in level and sets playerStartingPosition to 0, 0
 		{
 			matter.clear();
@@ -216,44 +220,152 @@ namespace game
 				generateTestLevel(BRICKTEXTURE);
 			}
 		}
+		int constructFromFile(std::string filename)
+		{
+			std::ifstream source(filename);
+			if (!source.is_open())
+			{
+				std::cerr << "Reading " << filename << " went wrong" << '\n';
+				return -1;
+			}
+			std::string buffer;
+			std::string lineBuffer;
+			std::getline(source, lineBuffer);
+			// Read player starting position
+			size_t i {0};
+			for (; i < lineBuffer.size() && lineBuffer.at(i) != ','; i++)
+			{
+				buffer += lineBuffer.at(i);
+			}
+			playerStartingPosition.x = std::stoi(buffer);
+			buffer.clear();
+			i++;
+			for (; i < lineBuffer.size(); i++)
+			{
+				buffer += lineBuffer.at(i);
+			}
+			playerStartingPosition.y = std::stoi(buffer);
+			buffer.clear();
+			matter.clear();
+			// Now add all remaining blocks
+			while (std::getline(source, lineBuffer))
+			{
+				// Read block positionX
+				Block newBlock;
+				for (i = 0; i < lineBuffer.size() && lineBuffer.at(i) != ','; i++)
+				{
+					buffer += lineBuffer.at(i);
+				}
+				newBlock.absolutePos.x = std::stoi(buffer);
+				buffer.clear();
+				i++;
+				// Read block positionY
+				for (; i < lineBuffer.size() && lineBuffer.at(i) != ','; i++)
+				{
+					buffer += lineBuffer.at(i);
+				}
+				newBlock.absolutePos.y = std::stoi(buffer);
+				buffer.clear();
+				i++;
+				// Now read texture position
+				for (; i < lineBuffer.size() && lineBuffer.at(i) != ','; i++)
+				{
+					buffer += lineBuffer.at(i);
+				}
+				newBlock.source.x = std::stoi(buffer);
+				buffer.clear();
+				i++;
+				for (; i < lineBuffer.size() && lineBuffer.at(i) != ','; i++)
+				{
+					buffer += lineBuffer.at(i);
+				}
+				newBlock.source.y = std::stoi(buffer);
+				buffer.clear();
+				i++;
+				for (; i < lineBuffer.size() && lineBuffer.at(i) != ','; i++)
+				{
+					buffer += lineBuffer.at(i);
+				}
+				newBlock.source.width = std::stoi(buffer);
+				buffer.clear();
+				i++;
+				for (; i < lineBuffer.size(); i++)
+				{
+					buffer += lineBuffer.at(i);
+				}
+				newBlock.source.height = std::stoi(buffer);
+				matter.push_back(newBlock);
+				buffer.clear();
+			}
+			source.close();
+			return 0;
+		}
 	};
 
 	namespace debugging
 	{
 		// Iterate over debug entries
-		struct debugEntry
+		struct debugMenu
 		{
-			std::string descriptorOne;
-			std::string descriptorTwo;
-			std::string descriptorThree;
-			int *entryOne = nullptr;
-			float *entryTwo = nullptr;
-			float *entryThree = nullptr;
-			const char *content()
+			int highlighted {0};
+			int dummyValue {0};
+			std::vector<std::string> variables = {"slime.speed", "Edit Mode", "Slime X", "Slime Y", "Mouse X", "Mouse Y"};
+			std::vector<int *> pointers = {&dummyValue, &dummyValue, &dummyValue, &dummyValue, &dummyValue, &dummyValue};
+			void drawSelf()
 			{
-				return TextFormat("%s: %d\n%s: %4.2f\n%s: %4.2f", descriptorOne.c_str(), *entryOne, descriptorTwo.c_str(), *entryTwo, descriptorThree.c_str(), *entryThree);
-			}
-			debugEntry(std::string a, int *x, std::string b, float *y, std::string c, float *z)
-			{
-				descriptorOne = a;
-				descriptorTwo = b;
-				descriptorThree = c;
-				entryOne = x;
-				entryTwo = y;
-				entryThree = z;
+				std::string content;
+				for (int i = 0; i < variables.size(); i++)
+				{
+					std::string prependable;
+					i == highlighted ? prependable = "[X] " : prependable = "";
+					content += prependable + variables.at(i) + ": " + std::to_string(*(pointers.at(i))) + '\n';
+				}
+				DrawText(content.c_str(), 20, 20, 20, BLUE);
 			}
 		};
 
 	}
+	class PauseMenu
+	{
+		public:
+			bool isOpen {0};
+			bool gameShouldPauseWhenOpened {1};
+			int keyToOpen {KEY_ESCAPE};
+			void alternateRender(Player & player, Level & level, Screen & screen, debugging::debugMenu & debugs)
+			{
+				BeginDrawing();
+				ClearBackground(screen.background);
+				debugs.drawSelf();
+				BeginMode2D(screen.camera);
+				player.drawSelf(screen);
+				level.drawSelf(screen);
+				EndMode2D();
+				DrawRectangle(0,0,screen.dimentions.x, screen.dimentions.y, {0, 50, 0, 30});
+				DrawText("PAUSED", screen.dimentions.x - 100 - MeasureText("PAUSED", 50), screen.dimentions.y - 100 , 50, GREEN);
+				EndDrawing();
+				// Handle inputs
+				if (IsKeyPressed(keyToOpen))
+				{
+					isOpen = !isOpen;
+				}
+			}
+	};
 	class inputHandler
 	{
 	public:
 		bool canJump{1};
 		bool debugMenuVisible{0};
 		int debugOption{0};
-		void handleKeypresses(Player &mainPlayer, Screen &mainScreen, float frameDelta, std::vector<game::debugging::debugEntry> &debugs)
+		int editMode {0};
+		Vector2 mousePosition;
+		Vector2 snappingMousePosition;
+		void handleKeypresses(Player &mainPlayer, Screen &mainScreen, float frameDelta, debugging::debugMenu &debugs, Level * level, PauseMenu & pauseMenu)
 		{
-			int response = GetCharPressed();
+			int response = GetKeyPressed();
+			mousePosition = GetMousePosition();
+			snappingMousePosition = GetScreenToWorld2D(mousePosition, mainScreen.camera);
+			snappingMousePosition.x = (((int) snappingMousePosition.x / 64)*64)-64;
+			snappingMousePosition.y = (((int) snappingMousePosition.y / 64)*64)-64;
 			if (IsKeyDown(KEY_D))
 			{
 				mainPlayer.playerDesiredMovement.x += mainPlayer.speed;
@@ -272,7 +384,11 @@ namespace game
 					mainPlayer.playerDesiredMovement.y -= mainPlayer.speed * 256;
 				}
 			}
-			if (IsKeyDown(KEY_Z))
+			if (IsKeyPressed(pauseMenu.keyToOpen))
+			{
+				pauseMenu.isOpen = 1;
+			}
+			if (IsKeyPressed(KEY_Z))
 			{
 				debugMenuVisible = !debugMenuVisible;
 			}
@@ -282,61 +398,130 @@ namespace game
 			}
 			if (debugMenuVisible)
 			{
-				if (response == 'r')
+				if (response == KEY_UP)
 				{
-					mainPlayer.absolutePos = {0, -100};
+					if (debugs.highlighted == 0)
+					{
+						debugs.highlighted = debugs.variables.size() - 1;
+					}
+					else
+					{
+						debugs.highlighted--;
+					}
 				}
-				if (response == '=')
+				if (response == KEY_DOWN)
 				{
-					(*(debugs.at(debugOption).entryOne))++;
+					if (debugs.highlighted == debugs.variables.size() - 1)
+					{
+						debugs.highlighted = 0;
+					}
+					else
+					{
+						debugs.highlighted++;
+					}
 				}
-				if (response == '-')
+				if (response == KEY_LEFT)
 				{
-					(*(debugs.at(debugOption).entryOne))--;
+					(*(debugs.pointers.at(debugs.highlighted)))--;
 				}
-				if (response == '`')
+				if (response == KEY_RIGHT)
 				{
-					debugOption + 1 < debugs.size() ? debugOption++ : debugOption = 0;
+					(*(debugs.pointers.at(debugs.highlighted)))++;
 				}
+				if (response == KEY_M)
+				{
+					std::ofstream output("LevelDump.raw", std::ios::ate);
+					if (!output.is_open())
+					{
+						std::cerr << "Something went wrong" << '\n';
+						return;
+					}
+					output << level->playerStartingPosition.x << ", " << level->playerStartingPosition.y << std::endl;
+					for (size_t i = 0; i < level->matter.size(); i++)
+					{
+						output << level->matter.at(i).absolutePos.x << ", " << level->matter.at(i).absolutePos.y << ", " << level->matter.at(i).source.x << ", " << level->matter.at(i).source.y << ", " << level->matter.at(i).source.width << ", " << level->matter.at(i).source.height << std::endl;
+					}
+					output.close();
+				}
+				if (response == KEY_N)
+				{
+					if (FileExists("LevelDump.raw"))
+					{
+						if (level->constructFromFile("LevelDump.raw") == 0)
+						{
+							mainPlayer.velocity = {0, 8};
+							mainPlayer.absolutePos = level->playerStartingPosition;
+						}
+						else
+						{
+							std::cerr << "Failed to read " << "LevelDump.raw" << "\n";
+						}
+						
+					}
+					
+
+				}
+			}
+			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT) && editMode)
+			{
+				Block newBlock;
+				newBlock.source = BRICKTEXTURE;
+				newBlock.absolutePos = snappingMousePosition;
+				level->matter.push_back(newBlock);
 			}
 		}
 	};
-	void printAllShit(Screen &screen, Player &player, inputHandler &inputs, std::vector<game::debugging::debugEntry> &stuff)
+	
+	void printAllShit(Screen &screen, Player &player, inputHandler &inputs, debugging::debugMenu &stuff)
 	{
-		if (inputs.debugMenuVisible)
+		if (inputs.editMode)
 		{
-			DrawText(stuff.at(inputs.debugOption).content(), 20, 20, 12, BLUE);
+			BeginMode2D(screen.camera);
+			DrawTexturePro(screen.spriteSheet, BRICKTEXTURE, {inputs.snappingMousePosition.x, inputs.snappingMousePosition.y, 64, 64}, {0, 0}, 0, RED);
+			EndMode2D();
 		}
 	}
 }
 
+
 int main()
 {
 	game::Screen mainScreen;
-	game::Level earth(1);
-	float frameDelta;
-	game::Player slime;
-	slime.absolutePos = earth.playerStartingPosition;
-	slime.velocity = {0, 8};
-	slime.playerDesiredMovement = {0, 0};
-	game::inputHandler test;
-	std::vector<game::debugging::debugEntry> debugEntries;
-	debugEntries.push_back(game::debugging::debugEntry("Player.speed", &slime.speed, "VelocityX", &slime.velocity.x, "VelocityY", &slime.velocity.y));
-	while (!WindowShouldClose())
 	{
-		frameDelta = GetFrameTime();
-		mainScreen.updateWindow();
-		mainScreen.camera.target = slime.absolutePos;
-		BeginDrawing();
-		ClearBackground(mainScreen.background);
-		game::printAllShit(mainScreen, slime, test, debugEntries);
-		BeginMode2D(mainScreen.camera);
-		slime.drawSelf(mainScreen);
-		earth.drawSelf(mainScreen);
-		EndMode2D();
-		EndDrawing();
-		slime.physicsStep(earth.matter, frameDelta);
-		test.handleKeypresses(slime, mainScreen, frameDelta, debugEntries);
+		game::Level earth(1);
+		float frameDelta;
+		game::Player slime;
+		slime.absolutePos = earth.playerStartingPosition;
+		slime.velocity = {0, 8};
+		slime.playerDesiredMovement = {0, 0};
+		game::inputHandler test;
+		game::PauseMenu pauseMenu;
+		game::debugging::debugMenu debugMenu;
+		debugMenu.pointers.at(1) = &test.editMode;
+		while (!WindowShouldClose())
+		{
+			frameDelta = GetFrameTime();
+			mainScreen.updateWindow();
+			mainScreen.camera.target = slime.absolutePos;
+			if (pauseMenu.isOpen)
+			{
+				pauseMenu.alternateRender(slime, earth, mainScreen, debugMenu);
+			}
+			else
+			{
+				BeginDrawing();
+				ClearBackground(mainScreen.background);
+				game::printAllShit(mainScreen, slime, test, debugMenu);
+				debugMenu.drawSelf();
+				BeginMode2D(mainScreen.camera);
+				slime.drawSelf(mainScreen);
+				earth.drawSelf(mainScreen);
+				EndMode2D();
+				EndDrawing();
+				slime.physicsStep(earth.matter, frameDelta);
+				test.handleKeypresses(slime, mainScreen, frameDelta, debugMenu, &earth, pauseMenu);
+			}
+		}
 	}
 	return 0;
 }
