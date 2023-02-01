@@ -661,7 +661,7 @@ int main()
 					if (animatedText.at(i).isVisible > 0)
 					{
 						animatedText.at(i).isVisible--;
-						DrawText(animatedText.at(i).Text.c_str(), 100, mainScreen.dimentions.y - 100 - 50, 50, GREEN);
+						DrawText(animatedText.at(i).Text.c_str(), 100, mainScreen.dimentions.y - 100 - 50, 50, {170, 255, 255, 255});
 					}
 				}
 				game::printAllShit(mainScreen, slime, test, debugMenu);
