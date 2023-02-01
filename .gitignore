@@ -3,3 +3,5 @@
 finalRefactor
 .vscode/tasks.json
 LevelDump.raw
+assets/tilesheet.png~
+.gitignore

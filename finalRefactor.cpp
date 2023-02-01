@@ -57,13 +57,13 @@ namespace game
 		Color background;
 		bool isRunning;
 		// int framerateCap {144};
-		void updateWindow()
+		void updateWindow(int & additionalZoom)
 		{
 			dimentions.x = GetRenderWidth();
 			dimentions.y = GetRenderHeight();
 			camera.offset.x = dimentions.x / 2;
 			camera.offset.y = dimentions.y / 2;
-			camera.zoom = (hypotenuse / 2202.91);
+			camera.zoom = (hypotenuse / (2202.91 + (10*additionalZoom)));
 			hypotenuse = std::sqrt((dimentions.x * dimentions.x) + (dimentions.y * dimentions.y));
 		}
 		Screen()
@@ -103,7 +103,14 @@ namespace game
 			DrawTexturePro(screen->spriteSheet, source, getRectangle(), {0, 0}, 0, WHITE);
 		}
 	};
-
+	void playerAnimation(bool * isRunning, std::uint64_t & incrementable, int & sleepDuration)
+	{
+		while (*isRunning)
+		{
+			incrementable++;
+			std::this_thread::sleep_for(std::chrono::milliseconds(sleepDuration));
+		}
+	}
 	class Player
 	{
 	public:
@@ -117,6 +124,7 @@ namespace game
 		int dragCoefficentY{128};
 		Rectangle source;
 		bool canJump{1};
+		int isMoving {0};
 		Player()
 		{
 			source = {0, (2048 - 64), 64, 64};
@@ -189,9 +197,11 @@ namespace game
 			velocity.x = velocity.x * !xAxisWillCollide;
 			velocity.y = velocity.y * !yAxisWillCollide;
 		}
-		void drawSelf(Screen &mainScreen)
+		void drawSelf(Screen &mainScreen, std::uint64_t * iterable)
 		{
-			DrawTexturePro(mainScreen.spriteSheet, {source.x + isFacingLeft, source.y, source.width, source.height}, {absolutePos.x, absolutePos.y, 64, 64}, {0, 0}, 0, WHITE);
+			std::abs(velocity.x) > 1 ? isMoving = 1 : isMoving = 0;
+			int sourceX = (64 * (*iterable % 5)) * isMoving;
+			DrawTexturePro(mainScreen.spriteSheet, {(float) sourceX, source.y - isFacingLeft, source.width, source.height}, {absolutePos.x, absolutePos.y, 64, 64}, {0, 0}, 0, WHITE);
 		}
 	};
 	class Level
@@ -324,7 +334,7 @@ namespace game
 		public:
 			int highlighted{0};
 			int dummyValue{2000};
-			std::vector<std::string> variables = {"slime.speed", "Edit Mode", "Slime X", "Slime Y", "Mouse X", "Mouse Y"};
+			std::vector<std::string> variables = {"Slime.speed", "Edit Mode", "Slime X", "Slime Y", "Mouse X", "Mouse Y"};
 			std::vector<int *> pointers = {&dummyValue, &dummyValue, &dummyValue, &dummyValue, &dummyValue, &dummyValue};
 			void drawSelf()
 			{
@@ -388,7 +398,7 @@ namespace game
 		UIbutton quit;
 		Vector2 mousePos;
 		Camera2D otherCamera;
-		void alternateRender(Player &player, Level &level, Screen &screen, debugging::debugMenu &debugs)
+		void alternateRender(Player &player, Level &level, Screen &screen, debugging::debugMenu &debugs, std::uint64_t * iterable)
 		{
 			mousePos = GetMousePosition();
 			otherCamera.offset = screen.camera.offset;
@@ -397,7 +407,7 @@ namespace game
 			ClearBackground(screen.background);
 			debugs.drawSelf();
 			BeginMode2D(screen.camera);
-			player.drawSelf(screen);
+			player.drawSelf(screen, iterable);
 			level.drawSelf(screen);
 			EndMode2D();
 			DrawRectangle(0, 0, screen.dimentions.x, screen.dimentions.y, {0, 50, 0, 30});
@@ -558,7 +568,7 @@ namespace game
 					break;
 				}
 			}
-			if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT) && editMode)
+			if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && editMode)
 			{
 				for (size_t i = 0; i < level->matter.size(); i++)
 				{
@@ -572,7 +582,7 @@ namespace game
 				newBlock.absolutePos = snappingMousePosition;
 				level->matter.push_back(newBlock);
 			}
-			if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT) && editMode)
+			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && editMode)
 			{
 				size_t i = 0;
 				for (; i < level->matter.size(); i++)
@@ -603,15 +613,18 @@ namespace game
 			EndMode2D();
 		}
 	}
-
+	
 }
 
 int main()
 {
 	game::Screen mainScreen;
+	std::uint64_t iterable = 0;
 	{
 		game::Level earth(1);
+		int zoom {0};
 		float frameDelta;
+		int AnimationThreadSleep {100};
 		game::Player slime;
 		slime.absolutePos = earth.playerStartingPosition;
 		slime.velocity = {0, 8};
@@ -637,15 +650,19 @@ int main()
 		debugMenu.variables.at(5) = "Load number";
 		debugMenu.pointers.at(4) = &test.saveName;
 		debugMenu.pointers.at(5) = &test.loadNumber;
-
+		debugMenu.variables.push_back("AnimationThreadSleep");
+		debugMenu.pointers.push_back(&AnimationThreadSleep);
+		debugMenu.variables.push_back("Zoom change");
+		debugMenu.pointers.push_back(&zoom);
+		std::thread worker(game::playerAnimation, &mainScreen.isRunning, std::ref(iterable), std::ref(AnimationThreadSleep));
 		while (!WindowShouldClose() && mainScreen.isRunning)
 		{
 			frameDelta = GetFrameTime();
-			mainScreen.updateWindow();
+			mainScreen.updateWindow(zoom);
 			mainScreen.camera.target = slime.absolutePos;
 			if (pauseMenu.isOpen)
 			{
-				pauseMenu.alternateRender(slime, earth, mainScreen, debugMenu);
+				pauseMenu.alternateRender(slime, earth, mainScreen, debugMenu, &iterable);
 			}
 			else
 			{
@@ -653,7 +670,7 @@ int main()
 				ClearBackground(mainScreen.background);
 				debugMenu.drawSelf();
 				BeginMode2D(mainScreen.camera);
-				slime.drawSelf(mainScreen);
+				slime.drawSelf(mainScreen, &iterable);
 				earth.drawSelf(mainScreen);
 				EndMode2D();
 				for (int i = 0; i < animatedText.size(); i++)
@@ -670,6 +687,8 @@ int main()
 				test.handleKeypresses(slime, mainScreen, frameDelta, debugMenu, &earth, pauseMenu, animatedText);
 			}
 		}
+		mainScreen.isRunning = 0;
+		worker.join();
 	}
 	return 0;
 }
