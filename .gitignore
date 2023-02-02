@@ -5,3 +5,4 @@ finalRefactor
 LevelDump.raw
 assets/tilesheet.png~
 .gitignore
+.vscode/settings.json

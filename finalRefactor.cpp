@@ -46,6 +46,21 @@ namespace game
 		int b{0};
 		int a{0};
 	};
+	struct animatedText
+	{
+		std::chrono::_V2::system_clock::time_point timeToEnd;
+		std::string Text;
+		int isVisible {0};
+		void reset(unsigned int milliseconds)
+		{
+			timeToEnd = std::chrono::_V2::system_clock::now() + std::chrono::milliseconds(milliseconds);
+			isVisible = 1;
+		}
+		animatedText(std::string message)
+		{
+			Text = message;
+		}
+	};
 	class Screen
 	{
 	public:
@@ -56,7 +71,6 @@ namespace game
 		Texture2D spriteSheet;
 		Color background;
 		bool isRunning;
-		// int framerateCap {144};
 		void updateWindow(int & additionalZoom)
 		{
 			dimentions.x = GetRenderWidth();
@@ -103,12 +117,19 @@ namespace game
 			DrawTexturePro(screen->spriteSheet, source, getRectangle(), {0, 0}, 0, WHITE);
 		}
 	};
-	void playerAnimation(bool * isRunning, std::uint64_t & incrementable, int & sleepDuration)
+	void animation(bool * isRunning, std::uint64_t & animatedEntityClock, int & sleepDuration, std::vector<animatedText> * texts)
 	{
 		while (*isRunning)
 		{
-			incrementable++;
-			std::this_thread::sleep_for(std::chrono::milliseconds(sleepDuration));
+			animatedEntityClock++;
+			for (size_t i = 0; i < texts->size(); i++)
+			{
+				if (std::chrono::system_clock::now() > texts->at(i).timeToEnd)
+				{
+					texts->at(i).isVisible = 0;
+				}
+			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 	}
 	class Player
@@ -132,7 +153,8 @@ namespace game
 		}
 		Rectangle getPredictedPosition(float &timeDelta, int xAxisOverride, int yAxisOverride)
 		{
-			return {absolutePos.x + (velocity.x * timeDelta * xAxisOverride), absolutePos.y + (velocity.y * timeDelta * yAxisOverride), 64, 64};
+			// This is slightly smaller than the actual sprite because floating point approximation limitations
+			return {absolutePos.x + (velocity.x * timeDelta * xAxisOverride), absolutePos.y + (velocity.y * timeDelta * yAxisOverride), 63, 63};
 		}
 		void physicsStep(std::vector<Block> &obstecules, float timeDelta)
 		{
@@ -334,8 +356,8 @@ namespace game
 		public:
 			int highlighted{0};
 			int dummyValue{2000};
-			std::vector<std::string> variables = {"Slime.speed", "Edit Mode", "Slime X", "Slime Y", "Mouse X", "Mouse Y"};
-			std::vector<int *> pointers = {&dummyValue, &dummyValue, &dummyValue, &dummyValue, &dummyValue, &dummyValue};
+			std::vector<std::string> variables;
+			std::vector<int *> pointers;
 			void drawSelf()
 			{
 				std::string content;
@@ -346,21 +368,6 @@ namespace game
 					content += prependable + variables.at(i) + ": " + std::to_string(*(pointers.at(i))) + '\n';
 				}
 				DrawText(content.c_str(), 20, 20, 20, {170, 255, 255, 255});
-			}
-			debugMenu()
-			{
-				for (int i = 0; i < dynamicPointers.size(); i++)
-				{
-					dynamicPointers.at(i) = new int;
-					pointers.at(i) = dynamicPointers.at(i);
-				}
-			}
-			~debugMenu()
-			{
-				for (int i = 0; i < dynamicPointers.size(); i++)
-				{
-					delete dynamicPointers.at(i);
-				}
 			}
 		};
 	}
@@ -405,7 +412,6 @@ namespace game
 			otherCamera.zoom = screen.camera.zoom * 2;
 			BeginDrawing();
 			ClearBackground(screen.background);
-			debugs.drawSelf();
 			BeginMode2D(screen.camera);
 			player.drawSelf(screen, iterable);
 			level.drawSelf(screen);
@@ -414,12 +420,17 @@ namespace game
 			BeginMode2D(otherCamera);
 			DrawTextureRec(screen.spriteSheet, quit.source(mousePos, otherCamera), quit.destination, WHITE);
 			EndMode2D();
+			debugs.drawSelf();
 			DrawText("PAUSED", (screen.dimentions.x / 2 ) - (MeasureText("PAUSED", 50) / 2), screen.dimentions.y * 0.1f, 50, {170, 255, 255, 255});
 			EndDrawing();
 			// Handle inputs
 			if (IsKeyPressed(keyToOpen))
 			{
 				isOpen = !isOpen;
+			}
+			if (IsKeyPressed(KEY_F))
+			{
+				ToggleFullscreen();
 			}
 			if (quit.isHighlighted && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
 			{
@@ -435,11 +446,7 @@ namespace game
 			otherCamera.target = {500, 500};
 		}
 	};
-	struct animatedText
-	{
-		size_t isVisible{0};
-		std::string Text;
-	};
+	
 	class inputHandler
 	{
 	public:
@@ -539,7 +546,7 @@ namespace game
 						output << level->matter.at(i).absolutePos.x << ", " << level->matter.at(i).absolutePos.y << ", " << level->matter.at(i).source.x << ", " << level->matter.at(i).source.y << ", " << level->matter.at(i).source.width << ", " << level->matter.at(i).source.height << std::endl;
 					}
 					output.close();
-					animations.at(0).isVisible += GetFPS() * frameDelta * 1500;
+					animations.at(0).reset(3000);
 				}
 				break;
 
@@ -552,14 +559,23 @@ namespace game
 						{
 							mainPlayer.velocity = {0, 8};
 							mainPlayer.absolutePos = level->playerStartingPosition;
-							animations.at(1).isVisible += GetFPS() * frameDelta * 1500; // Divide milliseconds by two to get this number
+							animations.at(1).reset(3000);
 						}
 						else
 						{
-							std::cerr << "Failed to read "
-									  << filename
-									  << "\n";
+							std::string error = "Failed to read " + filename;
+							std::cerr << error << std::endl;
+							animations.at(2).Text = error;
+							animations.at(2).reset(3000);
 						}
+						
+					}
+					else
+					{
+						std::string error = "Failed to read " + filename;
+						std::cerr << error << std::endl;
+						animations.at(2).Text = error;
+						animations.at(2).reset(3000);
 					}
 					break;
 				}
@@ -619,10 +635,11 @@ namespace game
 int main()
 {
 	game::Screen mainScreen;
-	std::uint64_t iterable = 0;
+	std::uint64_t animatedEntityClock = 0;
 	{
 		game::Level earth(1);
 		int zoom {0};
+		int framerate;
 		float frameDelta;
 		int AnimationThreadSleep {100};
 		game::Player slime;
@@ -633,55 +650,39 @@ int main()
 		game::PauseMenu pauseMenu;
 		game::debugging::debugMenu debugMenu;
 		std::vector<game::animatedText> animatedText;
-		animatedText.push_back(game::animatedText());
-		animatedText.push_back(game::animatedText());
-		animatedText.at(0).Text = "Level dumped successfully";
-		animatedText.at(1).Text = "Level loaded successfully";
-		debugMenu.pointers.at(0) = &slime.speed;
-		debugMenu.pointers.at(1) = &test.editMode;
-		debugMenu.pointers.at(2) = &slime.dragCoefficentX;
-		debugMenu.pointers.at(3) = &slime.dragCoefficentY;
-		// debugMenu.pointers.at(4) = (int *) &animatedText.at(0).isVisible;
-		debugMenu.pointers.at(4) = &debugMenu.dummyValue;
-		// debugMenu.pointers.at(5) = (int *) &animatedText.at(1).isVisible;
-		debugMenu.variables.at(2) = "Slime.dragCoefficentX";
-		debugMenu.variables.at(3) = "Slime.dragCoefficentY";
-		debugMenu.variables.at(4) = "Save as";
-		debugMenu.variables.at(5) = "Load number";
-		debugMenu.pointers.at(4) = &test.saveName;
-		debugMenu.pointers.at(5) = &test.loadNumber;
-		debugMenu.variables.push_back("AnimationThreadSleep");
-		debugMenu.pointers.push_back(&AnimationThreadSleep);
-		debugMenu.variables.push_back("Zoom change");
-		debugMenu.pointers.push_back(&zoom);
-		std::thread worker(game::playerAnimation, &mainScreen.isRunning, std::ref(iterable), std::ref(AnimationThreadSleep));
+		animatedText.push_back(game::animatedText("Level dumped successfully"));
+		animatedText.push_back(game::animatedText("Level loaded successfully"));
+		animatedText.push_back(game::animatedText("Failed to load"));
+		debugMenu.variables = {"Drag Divider", "Edit Mode", "Slime.dragCoefficentX", "Slime.dragCoefficentY", "Save As", "Load", "Zoom change", "Framerate"};
+		debugMenu.pointers = {&slime.speed, &test.editMode, &slime.dragCoefficentX, &slime.dragCoefficentY, &test.saveName, &test.loadNumber, &zoom, &framerate};
+		std::thread worker(game::animation, &mainScreen.isRunning, std::ref(animatedEntityClock), std::ref(AnimationThreadSleep), &animatedText);
 		while (!WindowShouldClose() && mainScreen.isRunning)
 		{
 			frameDelta = GetFrameTime();
+			framerate = (1/(frameDelta));
 			mainScreen.updateWindow(zoom);
 			mainScreen.camera.target = slime.absolutePos;
 			if (pauseMenu.isOpen)
 			{
-				pauseMenu.alternateRender(slime, earth, mainScreen, debugMenu, &iterable);
+				pauseMenu.alternateRender(slime, earth, mainScreen, debugMenu, &animatedEntityClock);
 			}
 			else
 			{
 				BeginDrawing();
 				ClearBackground(mainScreen.background);
-				debugMenu.drawSelf();
 				BeginMode2D(mainScreen.camera);
-				slime.drawSelf(mainScreen, &iterable);
+				slime.drawSelf(mainScreen, &animatedEntityClock);
 				earth.drawSelf(mainScreen);
 				EndMode2D();
 				for (int i = 0; i < animatedText.size(); i++)
 				{
 					if (animatedText.at(i).isVisible > 0)
 					{
-						animatedText.at(i).isVisible--;
 						DrawText(animatedText.at(i).Text.c_str(), 100, mainScreen.dimentions.y - 100 - 50, 50, {170, 255, 255, 255});
 					}
 				}
 				game::printAllShit(mainScreen, slime, test, debugMenu);
+				debugMenu.drawSelf();
 				EndDrawing();
 				slime.physicsStep(earth.matter, frameDelta);
 				test.handleKeypresses(slime, mainScreen, frameDelta, debugMenu, &earth, pauseMenu, animatedText);
