@@ -468,14 +468,16 @@ namespace game
 			snappingMousePosition = GetScreenToWorld2D(mousePosition, mainScreen.camera);
 			snappingMousePosition.x = (((int)snappingMousePosition.x / 64) * 64) - 64;
 			snappingMousePosition.y = (((int)snappingMousePosition.y / 64) * 64) - 64;
+			// float gamePad = GetGamepadAxisCount(0);
+			// std::cout << TextFormat("Axis Count:%d %4.2f, %4.2f, %4.2f\n", GetGamepadAxisCount(1), GetGamepadAxisMovement(1, GAMEPAD_AXIS_LEFT_X), GetGamepadAxisMovement(1, GAMEPAD_AXIS_LEFT_Y), GetGamepadAxisMovement(1, 6), GetGamepadAxisMovement(1, 3));
 			if (IsKeyDown(KEY_D))
 			{
-				mainPlayer.playerDesiredMovement.x += mainPlayer.speed;
+				mainPlayer.playerDesiredMovement.x += mainPlayer.speed / frameDelta;
 				mainPlayer.isFacingLeft = 0;
 			}
 			if (IsKeyDown(KEY_A))
 			{
-				mainPlayer.playerDesiredMovement.x -= mainPlayer.speed;
+				mainPlayer.playerDesiredMovement.x -= mainPlayer.speed / frameDelta;
 				mainPlayer.isFacingLeft = 64;
 			}
 			if (IsKeyDown(KEY_SPACE))
@@ -483,7 +485,7 @@ namespace game
 				if (mainPlayer.canJump)
 				{
 					mainPlayer.canJump = 0;
-					mainPlayer.playerDesiredMovement.y -= mainPlayer.speed * 256;
+					mainPlayer.playerDesiredMovement.y -= (mainPlayer.speed * 256);
 				}
 			}
 			if (IsKeyPressed(pauseMenu.keyToOpen))
@@ -651,11 +653,24 @@ namespace game
 
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	game::Screen mainScreen;
 	std::uint64_t animatedEntityClock = 0;
 	{
+		if (argc > 2)
+		{
+			// Try to parse it
+			std::vector<std::string> commandLineArguments;
+			for (int i = 1; i < argc; i++)
+			{
+				commandLineArguments.push_back(argv[i]);
+			}
+			if (commandLineArguments.at(0) == "-c")
+			{
+				SetTargetFPS(std::stoi(commandLineArguments.at(1)));
+			}
+		}
 		game::Level earth(1);
 		int zoom{0};
 		int framerate;
@@ -700,7 +715,7 @@ int main()
 				{
 					if (animatedText.at(i).isVisible > 0)
 					{
-						DrawText(animatedText.at(i).Text.c_str(), 100, mainScreen.dimentions.y - 100 - 50, 50, {170, 255, 255, 255});
+						DrawText(animatedText.at(i).Text.c_str(), 100, mainScreen.dimentions.y - 100 - 50, mainScreen.hypotenuse * 0.05, {170, 255, 255, 255});
 					}
 				}
 				game::printAllShit(mainScreen, slime, test, debugMenu);

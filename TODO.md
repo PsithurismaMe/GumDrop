@@ -2,3 +2,5 @@
 - [X] Do collision checking in a different thread from the one drawing
 - [ ] Get fonts to scale according to screen
 - [ ] Add more blocks
+- [X] Untie user inputs from framerate
+- [X] Implement OPTIONAL framerate cap 
