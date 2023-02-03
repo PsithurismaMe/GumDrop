@@ -1,0 +1,4 @@
+// Optimize drawing and collision checking 
+// Collision checking is done in a completely different thread. No FPS drop should occur as result
+// *With the exception of keyboard input
+Get fonts to scale according to screen
