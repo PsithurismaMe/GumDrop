@@ -6,14 +6,13 @@ A platformer <br/>
 Compilation Instructions:
 -----------------------------------------------
 Dependencies: <br/>
-	+ A C++ compiler <br/>
-	+ Raylib <br/> 
+  + A C++ compiler <br/>
+  + Raylib <br/> 
 
 To install all dependencies in one command:
-(These assume you already have the correct fonts)
 
   ```
-Arch Based:
+Arch Based Linux Distros:
 pacman -S raylib gcc
   ```
 
@@ -26,4 +25,4 @@ If you want to compile this on Windows, Have fun.
 	
 <br/>
 Legal <br/>
-All files in this repository are licensed under the GPL-V3
+All files in this repository are licensed under the [GPL-V3](LICENSE)

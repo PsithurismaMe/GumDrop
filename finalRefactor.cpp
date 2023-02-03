@@ -76,7 +76,6 @@ namespace game
 		Texture2D spriteSheet;
 		Color background;
 		bool isRunning;
-		Vect2Pos viewable;
 		void updateWindow(int &additionalZoom)
 		{
 			dimentions.x = GetRenderWidth();
@@ -85,8 +84,6 @@ namespace game
 			camera.offset.y = dimentions.y / 2;
 			camera.zoom = (hypotenuse / (2202.91 + (10 * additionalZoom)));
 			hypotenuse = std::sqrt((dimentions.x * dimentions.x) + (dimentions.y * dimentions.y));
-			viewable.pos1 = GetScreenToWorld2D({0, 0}, camera);
-			viewable.pos2 = GetScreenToWorld2D({(float)dimentions.x, (float)dimentions.y}, camera);
 		}
 		Screen()
 		{
