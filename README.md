@@ -1,21 +1,21 @@
 # Unnamed Platformer
-A platformer <br/>
+## A platformer
 
 <br/>
 
-Compilation Instructions:
+### Compilation Instructions:
 -----------------------------------------------
-Dependencies: <br/>
-  + A C++ compiler <br/>
-  + Raylib <br/> 
+## Dependencies
+1. A C++ compiler
+2. Raylib <br/> 
 
-To install all dependencies in one command:
-
-  ```
+## To install all dependencies in one command:
 Arch Based Linux Distros:
+  ```
 pacman -S raylib gcc
   ```
 
+## To actually compile it
   ```
 g++ finalRefactor.cpp -lraylib -O3
   ```
@@ -24,5 +24,6 @@ g++ finalRefactor.cpp -lraylib -O3
 If you want to compile this on Windows, Have fun.
 	
 <br/>
-Legal <br/>
+Legal
+
 All files in this repository are licensed under the [GPL-V3](LICENSE)
