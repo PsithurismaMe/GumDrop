@@ -658,7 +658,7 @@ int main(int argc, char **argv)
 	game::Screen mainScreen;
 	std::uint64_t animatedEntityClock = 0;
 	{
-		if (argc > 2)
+		if (argc > 1)
 		{
 			// Try to parse it
 			std::vector<std::string> commandLineArguments;
@@ -669,6 +669,11 @@ int main(int argc, char **argv)
 			if (commandLineArguments.at(0) == "-c")
 			{
 				SetTargetFPS(std::stoi(commandLineArguments.at(1)));
+			}
+			if (commandLineArguments.at(0) == "--help")
+			{
+				std::cout << mainScreen.WindowTitle << "\nCommand Arguments\n./a.out <options> <arguments>\n\nOptions:\nFramerate cap: -c <int>\nDisplay this: --help\n";
+				mainScreen.isRunning = 0;
 			}
 		}
 		game::Level earth(1);
