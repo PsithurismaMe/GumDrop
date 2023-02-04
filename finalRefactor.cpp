@@ -27,7 +27,7 @@
 
 namespace game
 {
-	class intVector2
+	class intVector2 
 	{
 	public:
 		int x{0};
@@ -38,7 +38,7 @@ namespace game
 			y = source.y;
 		}
 	};
-	class intVector4
+	class intVector4 // Unused for now
 	{
 	public:
 		int r{0};
@@ -51,7 +51,7 @@ namespace game
 		std::chrono::_V2::system_clock::time_point timeToEnd;
 		std::string Text;
 		int isVisible{0};
-		void reset(unsigned int milliseconds)
+		void reset(unsigned int milliseconds) // display animated text for a number of milliseconds
 		{
 			timeToEnd = std::chrono::_V2::system_clock::now() + std::chrono::milliseconds(milliseconds);
 			isVisible = 1;
@@ -61,7 +61,7 @@ namespace game
 			Text = message;
 		}
 	};
-	struct Vect2Pos
+	struct Vect2Pos // Unused for now
 	{
 		Vector2 pos1;
 		Vector2 pos2;
@@ -78,12 +78,14 @@ namespace game
 		bool isRunning;
 		void updateWindow(int &additionalZoom)
 		{
+			// Let the window manager handle window resolution. This isn't traditonal but fuck tradition.
 			dimentions.x = GetRenderWidth();
 			dimentions.y = GetRenderHeight();
 			camera.offset.x = dimentions.x / 2;
 			camera.offset.y = dimentions.y / 2;
-			camera.zoom = (hypotenuse / (2202.91 + (10 * additionalZoom)));
+			camera.zoom = (hypotenuse / (2202.91f + (10 * additionalZoom)));
 			hypotenuse = std::sqrt((dimentions.x * dimentions.x) + (dimentions.y * dimentions.y));
+			
 		}
 		Screen()
 		{
@@ -393,7 +395,7 @@ namespace game
 				return (sourceUnhighlighted);
 			}
 		}
-		void whenClicked()
+		void whenClicked() // I haven't decided whether to let the Pause menu handle this behavior or derived classes
 		{
 		}
 	};
@@ -406,6 +408,9 @@ namespace game
 		UIbutton quit;
 		Vector2 mousePos;
 		Camera2D otherCamera;
+		/*
+			Im using a second camera for the pause menu because i don't want to do the math.
+		*/
 		void alternateRender(Player &player, Level &level, Screen &screen, debugging::debugMenu &debugs, std::uint64_t *iterable, float &physicsMultiplyer)
 		{
 			mousePos = GetMousePosition();
@@ -422,7 +427,7 @@ namespace game
 			DrawTextureRec(screen.spriteSheet, quit.source(mousePos, otherCamera), quit.destination, WHITE);
 			EndMode2D();
 			debugs.drawSelf();
-			DrawText("PAUSED", (screen.dimentions.x / 2) - (MeasureText("PAUSED", 50) / 2), screen.dimentions.y * 0.1f, 50, {170, 255, 255, 255});
+			DrawText("PAUSED", (screen.dimentions.x / 2) - (MeasureText("PAUSED", screen.hypotenuse * 0.1f) / 2), screen.dimentions.y * 0.1f, screen.hypotenuse * 0.1f, {170, 255, 255, 255});
 			EndDrawing();
 			// Handle inputs
 			if (IsKeyPressed(keyToOpen))
@@ -468,6 +473,7 @@ namespace game
 			snappingMousePosition = GetScreenToWorld2D(mousePosition, mainScreen.camera);
 			snappingMousePosition.x = (((int)snappingMousePosition.x / 64) * 64) - 64;
 			snappingMousePosition.y = (((int)snappingMousePosition.y / 64) * 64) - 64;
+			// I cannot get raylib to read gamepad inputs on my computer so this is commented out
 			// float gamePad = GetGamepadAxisCount(0);
 			// std::cout << TextFormat("Axis Count:%d %4.2f, %4.2f, %4.2f\n", GetGamepadAxisCount(1), GetGamepadAxisMovement(1, GAMEPAD_AXIS_LEFT_X), GetGamepadAxisMovement(1, GAMEPAD_AXIS_LEFT_Y), GetGamepadAxisMovement(1, 6), GetGamepadAxisMovement(1, 3));
 			if (IsKeyDown(KEY_D))
@@ -536,6 +542,7 @@ namespace game
 
 				case KEY_M:
 				{
+					// I am too lasy to compress levels before writing them to disk
 					std::string filename = "levels/" + std::to_string(saveName) + ".level";
 					std::ofstream output(filename, std::ios::trunc);
 					if (!output.is_open())
@@ -555,6 +562,7 @@ namespace game
 
 				case KEY_N:
 				{
+					// the use of forward slashes for directories may break windows compatibility
 					std::string filename = "levels/" + std::to_string(loadNumber) + ".level";
 					if (FileExists(filename.c_str()))
 					{
@@ -607,6 +615,10 @@ namespace game
 				{
 					if (snappingMousePosition.x == level->matter.at(i).absolutePos.x && snappingMousePosition.y == level->matter.at(i).absolutePos.y)
 					{
+						/* 
+							Since std::vector doesn't have a method for removing elements at an arbitrary index, i have to use this mess.
+							It swaps the element at the last index in the vector, and the element at the index to remove. From then you can pop off the last element, deleting it.
+						*/
 						Block *cache1 = new Block;
 						Block *cache2 = new Block;
 						*cache1 = level->matter.at(level->matter.size() - 1);
@@ -642,7 +654,7 @@ namespace game
 			player->physicsStep(level->matter, *frameDelta, screen->camera);
 			if (std::chrono::system_clock::now() > expectedCompletionTime)
 			{
-				std::cerr << "Physics thread falling behind!\n";
+				std::cerr << "Physics thread falling behind!\nPhysics may become inaccurate!\n";
 			}
 			else
 			{
@@ -668,7 +680,18 @@ int main(int argc, char **argv)
 			}
 			if (commandLineArguments.at(0) == "-c")
 			{
-				SetTargetFPS(std::stoi(commandLineArguments.at(1)));
+				int placeholder {60};
+				try
+				{
+					placeholder = std::stoi(commandLineArguments.at(1));
+					SetTargetFPS(placeholder);
+				}
+				catch (...)
+				{
+					std::cerr << "Invalid argument(s) provided. Exiting\n";
+					mainScreen.isRunning = 0;
+				}
+				
 			}
 			if (commandLineArguments.at(0) == "--help")
 			{

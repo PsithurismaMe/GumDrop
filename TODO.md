@@ -1,6 +1,7 @@
 - [ ] Optimize drawing and collision checking
 - [X] Do collision checking in a different thread from the one drawing
-- [ ] Get fonts to scale according to screen
+- [X] Get fonts to scale according to screen
 - [ ] Add more blocks
 - [X] Untie user inputs from framerate
-- [X] Implement OPTIONAL framerate cap 
+- [X] Implement OPTIONAL framerate cap
+- [ ] Serialize background color and/or Background image

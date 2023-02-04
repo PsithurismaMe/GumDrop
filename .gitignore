@@ -6,3 +6,4 @@ LevelDump.raw
 assets/tilesheet.png~
 .gitignore
 .vscode/settings.json
+levels/10.level
