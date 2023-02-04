@@ -475,7 +475,7 @@ namespace game
 			snappingMousePosition.y = (((int)snappingMousePosition.y / 64) * 64) - 64;
 			// I cannot get raylib to read gamepad inputs on my computer so this is commented out
 			// float gamePad = GetGamepadAxisCount(0);
-			// std::cout << TextFormat("Axis Count:%d %4.2f, %4.2f, %4.2f\n", GetGamepadAxisCount(1), GetGamepadAxisMovement(1, GAMEPAD_AXIS_LEFT_X), GetGamepadAxisMovement(1, GAMEPAD_AXIS_LEFT_Y), GetGamepadAxisMovement(1, 6), GetGamepadAxisMovement(1, 3));
+			// std::cout << TextFormat("Axis Count:%d %4.2f, %4.2f, %4.2f\n", GetGamepadAxisCount(0), GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X), GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y), GetGamepadAxisMovement(0, 6), GetGamepadAxisMovement(0, 3));
 			if (IsKeyDown(KEY_D))
 			{
 				mainPlayer.playerDesiredMovement.x += mainPlayer.speed / frameDelta;

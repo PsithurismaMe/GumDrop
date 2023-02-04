@@ -5,3 +5,4 @@
 - [X] Untie user inputs from framerate
 - [X] Implement OPTIONAL framerate cap
 - [ ] Serialize background color and/or Background image
+- [ ] Write a storyline for the game
