@@ -27,7 +27,7 @@
 
 namespace game
 {
-	class intVector2 
+	class intVector2
 	{
 	public:
 		int x{0};
@@ -74,6 +74,7 @@ namespace game
 		Camera2D camera;
 		float hypotenuse;
 		Texture2D spriteSheet;
+		Image windowIcon;
 		Color background;
 		bool isRunning;
 		void updateWindow(int &additionalZoom)
@@ -85,13 +86,14 @@ namespace game
 			camera.offset.y = dimentions.y / 2;
 			camera.zoom = (hypotenuse / (2202.91f + (10 * additionalZoom)));
 			hypotenuse = std::sqrt((dimentions.x * dimentions.x) + (dimentions.y * dimentions.y));
-			
 		}
 		Screen()
 		{
 			InitWindow(dimentions.x, dimentions.y, WindowTitle.c_str());
 			SetWindowState(FLAG_WINDOW_RESIZABLE);
 			spriteSheet = LoadTexture("assets/tilesheet.png");
+			windowIcon = LoadImage("assets/icon.png");
+			SetWindowIcon(windowIcon);
 			camera.offset = {(float)dimentions.x / 2, (float)dimentions.y / 2};
 			camera.rotation = 0;
 			hypotenuse = std::sqrt((dimentions.x * dimentions.x) + (dimentions.y * dimentions.y));
@@ -107,6 +109,7 @@ namespace game
 		{
 			isRunning = 0;
 			UnloadTexture(spriteSheet);
+			UnloadImage(windowIcon);
 			CloseWindow();
 		}
 	};
@@ -143,7 +146,7 @@ namespace game
 	{
 	public:
 		int isFacingLeft{0}; // Set to 64 to face right
-		int speed{1};		 // MUST BE A MULTIPLE OF 64
+		int speed{1};
 		Vector2 velocity;
 		Vector2 playerDesiredMovement;
 		Vector2 absolutePos;
@@ -242,7 +245,7 @@ namespace game
 			matter.clear();
 			playerStartingPosition = {0, 0};
 		}
-		void generateTestLevel(Rectangle textureToApply) // Creates a 10x10, hollow box
+		void generateTestLevel(Rectangle textureToApply)
 		{
 			matter.clear();
 			for (int i = 0; i < 10; i++)
@@ -260,10 +263,10 @@ namespace game
 				matter.at(i).drawSelf(&mainscreen);
 			}
 		}
-		Level(bool generateTest)
+		Level(bool generateATestLevel)
 		{
 			playerStartingPosition = {0, 0};
-			if (generateTest)
+			if (generateATestLevel)
 			{
 				generateTestLevel(BRICKTEXTURE);
 			}
@@ -352,7 +355,6 @@ namespace game
 
 	namespace debugging
 	{
-		// Iterate over debug entries
 		struct debugMenu
 		{
 		public:
@@ -466,7 +468,7 @@ namespace game
 		Vector2 mousePosition;
 		Vector2 snappingMousePosition;
 		Rectangle blocks[3] = {BRICKTEXTURE, DIRTTEXTURE, GRASSTEXTURE};
-		void handleKeypresses(Player &mainPlayer, Screen &mainScreen, float frameDelta, debugging::debugMenu &debugs, Level *level, PauseMenu &pauseMenu, std::vector<animatedText> &animations)
+		void handleKeypresses(Player &mainPlayer, Screen &mainScreen, float frameTime, debugging::debugMenu &debugs, Level *level, PauseMenu &pauseMenu, std::vector<animatedText> &animations)
 		{
 			int response = GetKeyPressed();
 			mousePosition = GetMousePosition();
@@ -478,12 +480,12 @@ namespace game
 			// std::cout << TextFormat("Axis Count:%d %4.2f, %4.2f, %4.2f\n", GetGamepadAxisCount(0), GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X), GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y), GetGamepadAxisMovement(0, 6), GetGamepadAxisMovement(0, 3));
 			if (IsKeyDown(KEY_D))
 			{
-				mainPlayer.playerDesiredMovement.x += mainPlayer.speed / frameDelta;
+				mainPlayer.playerDesiredMovement.x += mainPlayer.speed / frameTime;
 				mainPlayer.isFacingLeft = 0;
 			}
 			if (IsKeyDown(KEY_A))
 			{
-				mainPlayer.playerDesiredMovement.x -= mainPlayer.speed / frameDelta;
+				mainPlayer.playerDesiredMovement.x -= mainPlayer.speed / frameTime;
 				mainPlayer.isFacingLeft = 64;
 			}
 			if (IsKeyDown(KEY_SPACE))
@@ -615,7 +617,7 @@ namespace game
 				{
 					if (snappingMousePosition.x == level->matter.at(i).absolutePos.x && snappingMousePosition.y == level->matter.at(i).absolutePos.y)
 					{
-						/* 
+						/*
 							Since std::vector doesn't have a method for removing elements at an arbitrary index, i have to use this mess.
 							It swaps the element at the last index in the vector, and the element at the index to remove. From then you can pop off the last element, deleting it.
 						*/
@@ -645,13 +647,13 @@ namespace game
 		}
 	}
 
-	void playerCollisionPhysics(Level *level, float *frameDelta, Screen *screen, Player *player)
+	void playerCollisionPhysics(Level *level, float *frameTime, Screen *screen, Player *player)
 	{
 		std::chrono::_V2::system_clock::time_point expectedCompletionTime;
 		while (screen->isRunning)
 		{
 			expectedCompletionTime = std::chrono::system_clock::now() + std::chrono::milliseconds(16);
-			player->physicsStep(level->matter, *frameDelta, screen->camera);
+			player->physicsStep(level->matter, *frameTime, screen->camera);
 			if (std::chrono::system_clock::now() > expectedCompletionTime)
 			{
 				std::cerr << "Physics thread falling behind!\nPhysics may become inaccurate!\n";
@@ -680,7 +682,7 @@ int main(int argc, char **argv)
 			}
 			if (commandLineArguments.at(0) == "-c")
 			{
-				int placeholder {60};
+				int placeholder{60};
 				try
 				{
 					placeholder = std::stoi(commandLineArguments.at(1));
@@ -691,7 +693,6 @@ int main(int argc, char **argv)
 					std::cerr << "Invalid argument(s) provided. Exiting\n";
 					mainScreen.isRunning = 0;
 				}
-				
 			}
 			if (commandLineArguments.at(0) == "--help")
 			{
@@ -702,14 +703,14 @@ int main(int argc, char **argv)
 		game::Level earth(1);
 		int zoom{0};
 		int framerate;
-		float frameDelta;
-		float fakeFrameDeltaForPhysics{1.0f / 60.0f};
-		int AnimationThreadSleep{100};
+		float frameTime;
+		float fakeframeTimeForPhysics{1.0f / 60.0f};
+		int animationThreadSleep{100};
 		game::Player slime;
 		slime.absolutePos = earth.playerStartingPosition;
 		slime.velocity = {0, 8};
 		slime.playerDesiredMovement = {0, 0};
-		game::inputHandler test;
+		game::inputHandler primaryInputHandler;
 		game::PauseMenu pauseMenu;
 		game::debugging::debugMenu debugMenu;
 		std::vector<game::animatedText> animatedText;
@@ -717,19 +718,19 @@ int main(int argc, char **argv)
 		animatedText.push_back(game::animatedText("Level loaded successfully"));
 		animatedText.push_back(game::animatedText("Failed to load"));
 		debugMenu.variables = {"Drag Divider", "Edit Mode", "Slime.dragCoefficentX", "Slime.dragCoefficentY", "Save As", "Load", "Zoom change", "Framerate"};
-		debugMenu.pointers = {&slime.speed, &test.editMode, &slime.dragCoefficentX, &slime.dragCoefficentY, &test.saveName, &test.loadNumber, &zoom, &framerate};
-		std::thread worker(game::animation, &mainScreen.isRunning, std::ref(animatedEntityClock), std::ref(AnimationThreadSleep), &animatedText);
-		std::thread physicsWorker(game::playerCollisionPhysics, &earth, &fakeFrameDeltaForPhysics, &mainScreen, &slime);
+		debugMenu.pointers = {&slime.speed, &primaryInputHandler.editMode, &slime.dragCoefficentX, &slime.dragCoefficentY, &primaryInputHandler.saveName, &primaryInputHandler.loadNumber, &zoom, &framerate};
+		std::thread animationWorker(game::animation, &mainScreen.isRunning, std::ref(animatedEntityClock), std::ref(animationThreadSleep), &animatedText);
+		std::thread physicsWorker(game::playerCollisionPhysics, &earth, &fakeframeTimeForPhysics, &mainScreen, &slime);
 		while (!WindowShouldClose() && mainScreen.isRunning)
 		{
-			frameDelta = GetFrameTime();
-			framerate = (1 / (frameDelta));
+			frameTime = GetFrameTime();
+			framerate = (1 / (frameTime));
 			mainScreen.updateWindow(zoom);
 			mainScreen.camera.target = slime.absolutePos;
 			if (pauseMenu.isOpen)
 			{
-				fakeFrameDeltaForPhysics = 0;
-				pauseMenu.alternateRender(slime, earth, mainScreen, debugMenu, &animatedEntityClock, fakeFrameDeltaForPhysics);
+				fakeframeTimeForPhysics = 0;
+				pauseMenu.alternateRender(slime, earth, mainScreen, debugMenu, &animatedEntityClock, fakeframeTimeForPhysics);
 			}
 			else
 			{
@@ -746,15 +747,15 @@ int main(int argc, char **argv)
 						DrawText(animatedText.at(i).Text.c_str(), 100, mainScreen.dimentions.y - 100 - 50, mainScreen.hypotenuse * 0.05, {170, 255, 255, 255});
 					}
 				}
-				game::printAllShit(mainScreen, slime, test, debugMenu);
+				game::printAllShit(mainScreen, slime, primaryInputHandler, debugMenu);
 				debugMenu.drawSelf();
 				EndDrawing();
-				test.handleKeypresses(slime, mainScreen, frameDelta, debugMenu, &earth, pauseMenu, animatedText);
+				primaryInputHandler.handleKeypresses(slime, mainScreen, frameTime, debugMenu, &earth, pauseMenu, animatedText);
 			}
 		}
 		mainScreen.isRunning = 0;
 		physicsWorker.join();
-		worker.join();
+		animationWorker.join();
 	}
 	return 0;
 }
