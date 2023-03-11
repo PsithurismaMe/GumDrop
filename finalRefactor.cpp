@@ -3,6 +3,7 @@
 #include <vector>
 #include <thread>
 #include <string>
+#include <sstream>
 #include <cmath>
 #include <fstream>
 
@@ -24,6 +25,8 @@
 		0, 64, 128, 64          \
 	}
 #define QUITBUTTONHIGHLIGHTED {128, 64, 128, 64};
+#define RETURNTOGAMEUNHIGHLIGHTED {0, 128, 128, 64};
+#define RETURNTOGAMEHIGHLIGHTED {128, 128, 128, 64};
 
 namespace game
 {
@@ -127,18 +130,11 @@ namespace game
 			DrawTexturePro(screen->spriteSheet, source, getRectangle(), {0, 0}, 0, WHITE);
 		}
 	};
-	void animation(bool *isRunning, std::uint64_t &animatedEntityClock, int &sleepDuration, std::vector<animatedText> *texts)
+	void animation(bool *isRunning, std::uint64_t &animatedEntityClock, int &sleepDuration)
 	{
 		while (*isRunning)
 		{
 			animatedEntityClock++;
-			for (size_t i = 0; i < texts->size(); i++)
-			{
-				if (std::chrono::system_clock::now() > texts->at(i).timeToEnd)
-				{
-					texts->at(i).isVisible = 0;
-				}
-			}
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
 	}
@@ -273,7 +269,7 @@ namespace game
 		}
 		int constructFromFile(std::string filename)
 		{
-			std::ifstream source(filename);
+			std::ifstream source("levels/" + filename);
 			if (!source.is_open())
 			{
 				std::cerr << "Reading " << filename << " went wrong" << '\n';
@@ -352,32 +348,6 @@ namespace game
 			return 0;
 		}
 	};
-
-	namespace debugging
-	{
-		struct debugMenu
-		{
-		public:
-			std::vector<int *> dynamicPointers = {&dummyValue, &dummyValue, &dummyValue, &dummyValue, &dummyValue, &dummyValue};
-
-		public:
-			int highlighted{0};
-			int dummyValue{2000};
-			std::vector<std::string> variables;
-			std::vector<int *> pointers;
-			void drawSelf()
-			{
-				std::string content;
-				for (int i = 0; i < variables.size(); i++)
-				{
-					std::string prependable;
-					i == highlighted ? prependable = "[X] " : prependable = "";
-					content += prependable + variables.at(i) + ": " + std::to_string(*(pointers.at(i))) + '\n';
-				}
-				DrawText(content.c_str(), 20, 20, 20, {170, 255, 255, 255});
-			}
-		};
-	}
 	class UIbutton
 	{
 	public:
@@ -408,14 +378,14 @@ namespace game
 		bool gameShouldPauseWhenOpened{1};
 		int keyToOpen{KEY_ESCAPE};
 		UIbutton quit;
+		UIbutton returnToGame;
 		Vector2 mousePos;
 		Camera2D otherCamera;
 		/*
 			Im using a second camera for the pause menu because i don't want to do the math.
 		*/
-		void alternateRender(Player &player, Level &level, Screen &screen, debugging::debugMenu &debugs, std::uint64_t *iterable, float &physicsMultiplyer)
+		void alternateRender(Player &player, Level &level, Screen &screen, std::uint64_t *iterable, float &physicsMultiplyer, std::vector<int> &inputs)
 		{
-			mousePos = GetMousePosition();
 			otherCamera.offset = screen.camera.offset;
 			otherCamera.zoom = screen.camera.zoom * 2;
 			BeginDrawing();
@@ -426,226 +396,33 @@ namespace game
 			EndMode2D();
 			DrawRectangle(0, 0, screen.dimentions.x, screen.dimentions.y, {0, 50, 0, 30});
 			BeginMode2D(otherCamera);
-			DrawTextureRec(screen.spriteSheet, quit.source(mousePos, otherCamera), quit.destination, WHITE);
+			DrawTextureRec(screen.spriteSheet, quit.source({(float)inputs[5], (float)inputs[6]}, otherCamera), quit.destination, WHITE);
+			DrawTextureRec(screen.spriteSheet, returnToGame.source({(float)inputs[5], (float)inputs[6]}, otherCamera), returnToGame.destination, WHITE);
 			EndMode2D();
-			debugs.drawSelf();
 			DrawText("PAUSED", (screen.dimentions.x / 2) - (MeasureText("PAUSED", screen.hypotenuse * 0.1f) / 2), screen.dimentions.y * 0.1f, screen.hypotenuse * 0.1f, {170, 255, 255, 255});
 			EndDrawing();
-			// Handle inputs
-			if (IsKeyPressed(keyToOpen))
-			{
-				physicsMultiplyer = 1.0f / 60.0f;
-				isOpen = !isOpen;
-			}
-			if (IsKeyPressed(KEY_F))
-			{
-				ToggleFullscreen();
-			}
-			if (quit.isHighlighted && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+			if (quit.isHighlighted && inputs[7])
 			{
 				screen.isRunning = 0;
+			}
+			if (returnToGame.isHighlighted && inputs[7])
+			{
+				isOpen = 0;
+				physicsMultiplyer = (1.0f / 60.0f);
 			}
 		}
 		PauseMenu()
 		{
 			quit.sourceHighlighted = QUITBUTTONHIGHLIGHTED;
 			quit.sourceUnhighlighted = QUITBUTTONUNHIGHLIGHTED;
-			quit.destination = {436, 600};
+			returnToGame.sourceHighlighted = RETURNTOGAMEHIGHLIGHTED;
+			returnToGame.sourceUnhighlighted = RETURNTOGAMEUNHIGHLIGHTED;
+			quit.destination = {500, 600};
+			returnToGame.destination = {372, 600};
 			otherCamera.target = {500, 500};
+			otherCamera.rotation = 0;
 		}
 	};
-
-	class inputHandler
-	{
-	public:
-		bool canJump{1};
-		bool debugMenuVisible{0};
-		int debugOption{0};
-		int editMode{0};
-		int debugOptionMultiple{4};
-		int saveName{0};
-		int loadNumber{0};
-		Vector2 mousePosition;
-		Vector2 snappingMousePosition;
-		Rectangle blocks[3] = {BRICKTEXTURE, DIRTTEXTURE, GRASSTEXTURE};
-		void handleKeypresses(Player &mainPlayer, Screen &mainScreen, float frameTime, debugging::debugMenu &debugs, Level *level, PauseMenu &pauseMenu, std::vector<animatedText> &animations)
-		{
-			int response = GetKeyPressed();
-			mousePosition = GetMousePosition();
-			snappingMousePosition = GetScreenToWorld2D(mousePosition, mainScreen.camera);
-			snappingMousePosition.x = (((int)snappingMousePosition.x / 64) * 64) - 64;
-			snappingMousePosition.y = (((int)snappingMousePosition.y / 64) * 64) - 64;
-			// I cannot get raylib to read gamepad inputs on my computer so this is commented out
-			// float gamePad = GetGamepadAxisCount(0);
-			// std::cout << TextFormat("Axis Count:%d %4.2f, %4.2f, %4.2f\n", GetGamepadAxisCount(0), GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_X), GetGamepadAxisMovement(0, GAMEPAD_AXIS_LEFT_Y), GetGamepadAxisMovement(0, 6), GetGamepadAxisMovement(0, 3));
-			if (IsKeyDown(KEY_D))
-			{
-				mainPlayer.playerDesiredMovement.x += mainPlayer.speed / frameTime;
-				mainPlayer.isFacingLeft = 0;
-			}
-			if (IsKeyDown(KEY_A))
-			{
-				mainPlayer.playerDesiredMovement.x -= mainPlayer.speed / frameTime;
-				mainPlayer.isFacingLeft = 64;
-			}
-			if (IsKeyDown(KEY_SPACE))
-			{
-				if (mainPlayer.canJump)
-				{
-					mainPlayer.canJump = 0;
-					mainPlayer.playerDesiredMovement.y -= (mainPlayer.speed * 256);
-				}
-			}
-			if (IsKeyPressed(pauseMenu.keyToOpen))
-			{
-				pauseMenu.isOpen = 1;
-			}
-			if (IsKeyPressed(KEY_Z))
-			{
-				debugMenuVisible = !debugMenuVisible;
-			}
-			if (IsKeyPressed(KEY_F))
-			{
-				ToggleFullscreen();
-			}
-			if (debugMenuVisible)
-			{
-				switch (response)
-				{
-				case KEY_UP:
-					if (debugs.highlighted == 0)
-					{
-						debugs.highlighted = debugs.variables.size() - 1;
-					}
-					else
-					{
-						debugs.highlighted--;
-					}
-					break;
-
-				case KEY_DOWN:
-					if (debugs.highlighted == debugs.variables.size() - 1)
-					{
-						debugs.highlighted = 0;
-					}
-					else
-					{
-						debugs.highlighted++;
-					}
-					break;
-
-				case KEY_LEFT:
-					(*(debugs.pointers.at(debugs.highlighted))) -= (debugOptionMultiple * IsKeyDown(KEY_LEFT_SHIFT)) + 1;
-					break;
-
-				case KEY_RIGHT:
-					(*(debugs.pointers.at(debugs.highlighted))) += (debugOptionMultiple * IsKeyDown(KEY_LEFT_SHIFT)) + 1;
-					break;
-
-				case KEY_M:
-				{
-					// I am too lasy to compress levels before writing them to disk
-					std::string filename = "levels/" + std::to_string(saveName) + ".level";
-					std::ofstream output(filename, std::ios::trunc);
-					if (!output.is_open())
-					{
-						std::cerr << "Something went wrong" << '\n';
-						return;
-					}
-					output << level->playerStartingPosition.x << ", " << level->playerStartingPosition.y << std::endl;
-					for (size_t i = 0; i < level->matter.size(); i++)
-					{
-						output << level->matter.at(i).absolutePos.x << ", " << level->matter.at(i).absolutePos.y << ", " << level->matter.at(i).source.x << ", " << level->matter.at(i).source.y << ", " << level->matter.at(i).source.width << ", " << level->matter.at(i).source.height << std::endl;
-					}
-					output.close();
-					animations.at(0).reset(3000);
-				}
-				break;
-
-				case KEY_N:
-				{
-					// the use of forward slashes for directories may break windows compatibility
-					std::string filename = "levels/" + std::to_string(loadNumber) + ".level";
-					if (FileExists(filename.c_str()))
-					{
-						if (level->constructFromFile(filename.c_str()) == 0)
-						{
-							mainPlayer.velocity = {0, 8};
-							mainPlayer.absolutePos = level->playerStartingPosition;
-							animations.at(1).reset(3000);
-						}
-						else
-						{
-							std::string error = "Failed to read " + filename;
-							std::cerr << error << std::endl;
-							animations.at(2).Text = error;
-							animations.at(2).reset(3000);
-						}
-					}
-					else
-					{
-						std::string error = "Failed to read " + filename;
-						std::cerr << error << std::endl;
-						animations.at(2).Text = error;
-						animations.at(2).reset(3000);
-					}
-					break;
-				}
-
-				default:
-					break;
-				}
-			}
-			if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && editMode)
-			{
-				for (size_t i = 0; i < level->matter.size(); i++)
-				{
-					if (snappingMousePosition.x == level->matter.at(i).absolutePos.x && snappingMousePosition.y == level->matter.at(i).absolutePos.y)
-					{
-						return;
-					}
-				}
-				Block newBlock;
-				newBlock.source = blocks[editMode % 3];
-				newBlock.absolutePos = snappingMousePosition;
-				level->matter.push_back(newBlock);
-			}
-			if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && editMode)
-			{
-				size_t i = 0;
-				for (; i < level->matter.size(); i++)
-				{
-					if (snappingMousePosition.x == level->matter.at(i).absolutePos.x && snappingMousePosition.y == level->matter.at(i).absolutePos.y)
-					{
-						/*
-							Since std::vector doesn't have a method for removing elements at an arbitrary index, i have to use this mess.
-							It swaps the element at the last index in the vector, and the element at the index to remove. From then you can pop off the last element, deleting it.
-						*/
-						Block *cache1 = new Block;
-						Block *cache2 = new Block;
-						*cache1 = level->matter.at(level->matter.size() - 1);
-						*cache2 = level->matter.at(i);
-						level->matter.at(i) = *cache1;
-						level->matter.pop_back();
-						delete cache1;
-						delete cache2;
-						level->matter.shrink_to_fit();
-						break;
-					}
-				}
-			}
-		}
-	};
-
-	void printAllShit(Screen &screen, Player &player, inputHandler &inputs, debugging::debugMenu &stuff)
-	{
-		if (inputs.editMode)
-		{
-			BeginMode2D(screen.camera);
-			DrawTexturePro(screen.spriteSheet, inputs.blocks[inputs.editMode % 3], {inputs.snappingMousePosition.x, inputs.snappingMousePosition.y, 64, 64}, {0, 0}, 0, RED);
-			EndMode2D();
-		}
-	}
 
 	void playerCollisionPhysics(Level *level, float *frameTime, Screen *screen, Player *player)
 	{
@@ -671,6 +448,7 @@ int main(int argc, char **argv)
 {
 	game::Screen mainScreen;
 	std::uint64_t animatedEntityClock = 0;
+	std::vector<int> inputs(10, 0);
 	{
 		if (argc > 1)
 		{
@@ -706,21 +484,92 @@ int main(int argc, char **argv)
 		float frameTime;
 		float fakeframeTimeForPhysics{1.0f / 60.0f};
 		int animationThreadSleep{100};
+		bool editMode{0};
+		bool inConsole{0};
+		bool showFPS{0};
+		std::string commandLineBuffer;
+		Rectangle blocks[3] = {BRICKTEXTURE, DIRTTEXTURE, GRASSTEXTURE};
+		Vector2 snappingMousePosition;
 		game::Player slime;
 		slime.absolutePos = earth.playerStartingPosition;
 		slime.velocity = {0, 8};
 		slime.playerDesiredMovement = {0, 0};
-		game::inputHandler primaryInputHandler;
 		game::PauseMenu pauseMenu;
-		game::debugging::debugMenu debugMenu;
-		std::vector<game::animatedText> animatedText;
-		animatedText.push_back(game::animatedText("Level dumped successfully"));
-		animatedText.push_back(game::animatedText("Level loaded successfully"));
-		animatedText.push_back(game::animatedText("Failed to load"));
-		debugMenu.variables = {"Drag Divider", "Edit Mode", "Slime.dragCoefficentX", "Slime.dragCoefficentY", "Save As", "Load", "Zoom change", "Framerate"};
-		debugMenu.pointers = {&slime.speed, &primaryInputHandler.editMode, &slime.dragCoefficentX, &slime.dragCoefficentY, &primaryInputHandler.saveName, &primaryInputHandler.loadNumber, &zoom, &framerate};
-		std::thread animationWorker(game::animation, &mainScreen.isRunning, std::ref(animatedEntityClock), std::ref(animationThreadSleep), &animatedText);
+		std::thread animationWorker(game::animation, &mainScreen.isRunning, std::ref(animatedEntityClock), std::ref(animationThreadSleep));
 		std::thread physicsWorker(game::playerCollisionPhysics, &earth, &fakeframeTimeForPhysics, &mainScreen, &slime);
+		std::thread inputThread([&]
+								  {
+			while (mainScreen.isRunning)
+			{
+				snappingMousePosition = GetScreenToWorld2D({(float) inputs[5], (float) inputs[6]}, mainScreen.camera);
+				snappingMousePosition.x = (((int)snappingMousePosition.x / 64) * 64) - 64;
+				snappingMousePosition.y = (((int)snappingMousePosition.y / 64) * 64) - 64;
+				if (inputs[0])
+				{
+					slime.playerDesiredMovement.x += slime.speed;
+					slime.isFacingLeft = 0;
+
+				}
+				if (inputs[1])
+				{
+					slime.playerDesiredMovement.x -= slime.speed;
+					slime.isFacingLeft = 64;
+				}
+				if (inputs[2])
+				{
+					if (slime.canJump)
+					{
+						slime.canJump = 0;
+						slime.playerDesiredMovement.y -= (slime.speed * 256);
+					}
+				}
+				if (inputs[3])
+				{
+					pauseMenu.isOpen = 1;
+				}
+				if (inputs[7] && editMode && !pauseMenu.isOpen)
+				{
+					bool matchFound {0};
+					for (size_t i = 0; i < earth.matter.size(); i++)
+					{
+						if (snappingMousePosition.x == earth.matter.at(i).absolutePos.x && snappingMousePosition.y == earth.matter.at(i).absolutePos.y)
+						{
+							matchFound = 1;
+							break;
+						}
+					}
+					if (!matchFound)
+					{
+						game::Block newBlock;
+						newBlock.source = blocks[editMode % 3];
+						newBlock.absolutePos = snappingMousePosition;
+						earth.matter.push_back(newBlock);
+					}
+				}
+				if (inputs[8] && editMode && !pauseMenu.isOpen)
+				{
+					
+					for (size_t i = 0; i < earth.matter.size(); i++)
+					{
+						if (snappingMousePosition.x == earth.matter.at(i).absolutePos.x && snappingMousePosition.y == earth.matter.at(i).absolutePos.y)
+						{
+							/*
+								Since std::vector doesn't have a method for removing elements at an arbitrary index, i have to use this mess.
+								It swaps the element at the last index in the vector, and the element at the index to remove. From then you can pop off the last element, deleting it.
+							*/
+							game::Block *cache1 = new game::Block;
+							game::Block *cache2 = new game::Block;
+							*cache1 = earth.matter.at(earth.matter.size() - 1);
+							*cache2 = earth.matter.at(i);
+							earth.matter.at(i) = *cache1;
+							earth.matter.pop_back();
+							delete cache1;
+							delete cache2;
+							break;
+						}
+					}
+				}
+			} });
 		while (!WindowShouldClose() && mainScreen.isRunning)
 		{
 			frameTime = GetFrameTime();
@@ -730,7 +579,7 @@ int main(int argc, char **argv)
 			if (pauseMenu.isOpen)
 			{
 				fakeframeTimeForPhysics = 0;
-				pauseMenu.alternateRender(slime, earth, mainScreen, debugMenu, &animatedEntityClock, fakeframeTimeForPhysics);
+				pauseMenu.alternateRender(slime, earth, mainScreen, &animatedEntityClock, fakeframeTimeForPhysics, inputs);
 			}
 			else
 			{
@@ -740,20 +589,108 @@ int main(int argc, char **argv)
 				slime.drawSelf(mainScreen, &animatedEntityClock);
 				earth.drawSelf(mainScreen);
 				EndMode2D();
-				for (int i = 0; i < animatedText.size(); i++)
+				if (showFPS)
 				{
-					if (animatedText.at(i).isVisible > 0)
+					DrawText(TextFormat("FPS: %d", framerate), 50, (mainScreen.dimentions.y * 0.1f), 0.01f * mainScreen.hypotenuse, BLUE);
+				}
+				if (inConsole)
+				{
+					DrawText(commandLineBuffer.c_str(), 50, (mainScreen.dimentions.y * 0.8f), 0.01f * mainScreen.hypotenuse, RED);
+					int keypress = GetKeyPressed();
+					if (keypress != 0 && keypress != '/' && keypress != KEY_BACKSPACE)
 					{
-						DrawText(animatedText.at(i).Text.c_str(), 100, mainScreen.dimentions.y - 100 - 50, mainScreen.hypotenuse * 0.05, {170, 255, 255, 255});
+						if (keypress == KEY_ENTER)
+						{
+							inConsole = 0;
+							std::vector<std::string> arguments;
+							std::string buff;
+							std::istringstream source(commandLineBuffer);
+							while (std::getline(source, buff, ' '))
+							{
+								arguments.push_back(buff);
+							}
+							try
+							{
+								if (arguments.at(0) == "/SET")
+								{
+									if (arguments.at(1) == "EDITMODE")
+									{
+										editMode = std::stoi(arguments.at(2));
+									}
+									if (arguments.at(1) == "ZOOM")
+									{
+										zoom = std::stof(arguments.at(2));
+									}
+								}
+								if (arguments.at(0) == "/FULLSCREEN")
+								{
+									ToggleFullscreen();
+								}
+								if (arguments.at(0) == "/LOAD")
+								{
+									if (earth.constructFromFile(arguments.at(1)) == 0)
+									{
+										slime.absolutePos = earth.playerStartingPosition;
+									}
+								}
+								if (arguments.at(0) == "/DUMP" && arguments.size() > 1)
+								{
+									// I am too lasy to compress levels before writing them to disk
+									std::string filename = "levels/" + arguments.at(1);
+									std::ofstream output(filename, std::ios::trunc);
+									if (!output.is_open())
+									{
+										std::cerr << "Something went wrong" << '\n';
+										continue;
+									}
+									output << earth.playerStartingPosition.x << ", " << earth.playerStartingPosition.y << std::endl;
+									for (size_t i = 0; i < earth.matter.size(); i++)
+									{
+										output << earth.matter.at(i).absolutePos.x << ", " << earth.matter.at(i).absolutePos.y << ", " << earth.matter.at(i).source.x << ", " << earth.matter.at(i).source.y << ", " << earth.matter.at(i).source.width << ", " << earth.matter.at(i).source.height << std::endl;
+									}
+									output.close();
+								}
+								if (arguments.at(0) == "/SHOWFPS")
+								{
+									showFPS = !showFPS;
+								}
+							}
+							catch (const std::exception &e)
+							{
+								std::cerr << e.what() << '\n';
+							}
+							commandLineBuffer.clear();
+						}
+						else
+						{
+
+							commandLineBuffer += (keypress % 255);
+						}
 					}
 				}
-				game::printAllShit(mainScreen, slime, primaryInputHandler, debugMenu);
-				debugMenu.drawSelf();
 				EndDrawing();
-				primaryInputHandler.handleKeypresses(slime, mainScreen, frameTime, debugMenu, &earth, pauseMenu, animatedText);
 			}
+			if (IsKeyPressed(KEY_BACKSPACE) && inConsole && commandLineBuffer.size() > 1)
+			{
+				commandLineBuffer.pop_back();
+			}
+			if (IsKeyPressed(KEY_SLASH) && !inConsole)
+			{
+				inConsole = 1;
+				commandLineBuffer += '/';
+			}
+			inputs[0] = IsKeyDown(KEY_D);
+			inputs[1] = IsKeyDown(KEY_A);
+			inputs[2] = IsKeyDown(KEY_SPACE);
+			inputs[3] = IsKeyDown(KEY_ESCAPE);
+			inputs[4] = IsKeyDown(KEY_F);
+			inputs[5] = GetMouseX();
+			inputs[6] = GetMouseY();
+			inputs[7] = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+			inputs[8] = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
 		}
 		mainScreen.isRunning = 0;
+		inputThread.join();
 		physicsWorker.join();
 		animationWorker.join();
 	}
