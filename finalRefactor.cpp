@@ -147,7 +147,7 @@ namespace game
 		Vector2 playerDesiredMovement;
 		Vector2 absolutePos;
 		intVector2 terminalVelocity{256, 512};
-		int dragCoefficentX{4};
+		int dragCoefficentX{100};
 		int dragCoefficentY{128};
 		Rectangle source;
 		bool canJump{1};
@@ -160,7 +160,7 @@ namespace game
 		Rectangle getPredictedPosition(float &timeDelta, int xAxisOverride, int yAxisOverride)
 		{
 			// This is slightly smaller than the actual sprite because floating point approximation limitations
-			return {absolutePos.x + (velocity.x * timeDelta * xAxisOverride), absolutePos.y + (velocity.y * timeDelta * yAxisOverride), 63, 63};
+			return {(absolutePos.x) + (velocity.x * timeDelta * xAxisOverride), (absolutePos.y + 23) + (velocity.y * timeDelta * yAxisOverride), 63, 41};
 		}
 		void physicsStep(std::vector<Block> &obstecules, float timeDelta, Camera2D &mainCamera)
 		{
@@ -204,7 +204,6 @@ namespace game
 				yAxisWillCollide = CheckCollisionRecs(getPredictedPosition(timeDelta, 0, 1), obstecules.at(i).getRectangle());
 				if (yAxisWillCollide)
 				{
-					indexes[1] = i;
 					canJump = 1;
 					break;
 				}
@@ -218,6 +217,7 @@ namespace game
 					break;
 				}
 			}
+			std::abs(velocity.x) > 0.2f ? velocity.x = velocity.x : velocity.x = 0;
 			absolutePos.x += (velocity.x * timeDelta * !xAxisWillCollide);
 			absolutePos.y += (velocity.y * timeDelta * !yAxisWillCollide);
 			velocity.x = velocity.x * !xAxisWillCollide;
@@ -484,7 +484,7 @@ int main(int argc, char **argv)
 		float frameTime;
 		float fakeframeTimeForPhysics{1.0f / 60.0f};
 		int animationThreadSleep{100};
-		bool editMode{0};
+		int editMode{0};
 		bool inConsole{0};
 		bool showFPS{0};
 		std::string commandLineBuffer;
@@ -653,6 +653,11 @@ int main(int argc, char **argv)
 								if (arguments.at(0) == "/SHOWFPS")
 								{
 									showFPS = !showFPS;
+								}
+								if (arguments.at(0) == "/RESETLEVEL")
+								{
+									earth.generateTestLevel(BRICKTEXTURE);
+									slime.absolutePos = earth.playerStartingPosition;
 								}
 							}
 							catch (const std::exception &e)
