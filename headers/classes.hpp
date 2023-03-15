@@ -7,6 +7,7 @@
 #include <string>
 #include <cmath>
 #include <sstream>
+#include <functional>
 
 namespace platformer
 {
@@ -19,7 +20,6 @@ namespace platformer
         Rectangle inGamePositionDimension {0, 0, 64, 64};
         bool collisionEnabled;
         int groupNumber;
-        
 
     public:
         // Yet to be implemented
@@ -73,6 +73,7 @@ namespace platformer
     {
     protected:
         Rectangle positionOnSpriteSheet;
+        int type;
     public:
         void setPositionOnSpriteSheet(Rectangle rect)
         {
@@ -86,6 +87,26 @@ namespace platformer
         {
             DrawTexturePro(spritesheet, positionOnSpriteSheet, inGamePositionDimension, {0, 0}, 0, WHITE);
         }
+        stationaryStaticBlock()
+        {
+
+        }
+        stationaryStaticBlock(stationaryStaticBlock & whereToInherit, int globalx, int globaly, int wid, int hgt)
+        {
+            (*this) = whereToInherit;
+            inGamePositionDimension.x = globalx;
+            inGamePositionDimension.y = globaly;
+            inGamePositionDimension.width = wid;
+            inGamePositionDimension.height = hgt;
+        }
+        void setType(int t)
+        {
+            type = t;
+        }
+        int getType()
+        {
+            return type;
+        }
     };
     class stationaryAnimatedBlock : public collidable
     {
@@ -95,6 +116,7 @@ namespace platformer
         int maximumFrames = 2;
         int frameToDisplay {0};
         size_t * iterable = nullptr;
+        int type;
     public:
         void setInitialPositionOnSpriteSheet(Rectangle rect)
         {
@@ -112,6 +134,14 @@ namespace platformer
         void setIterablePointer(size_t * ptr)
         {
             iterable = ptr;
+        }
+        Rectangle getInitialSpritePosition()
+        {
+            return initialPositionOnSpriteSheet;
+        }
+        int getFrameDisplayed()
+        {
+            return frameToDisplay;
         }
         void draw(Texture2D & spritesheet)
         {
@@ -137,6 +167,14 @@ namespace platformer
             inGamePositionDimension.width = wid;
             inGamePositionDimension.height = hgt;
             iterable = i;
+        }
+        void setType(int t)
+        {
+            type = t;
+        }
+        int getType()
+        {
+            return type;
         }
     };
     class npc : public stationaryAnimatedBlock
