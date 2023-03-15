@@ -6,7 +6,7 @@
 #include <sstream>
 #include <cmath>
 #include <fstream>
-
+std::uint64_t animatedEntityClock = 0;
 #define GRASSTEXTURE \
 	{                \
 		0, 0, 64, 64 \
@@ -130,6 +130,16 @@ namespace game
 			DrawTexturePro(screen->spriteSheet, source, getRectangle(), {0, 0}, 0, WHITE);
 		}
 	};
+	class AnimatedBlock : public Block
+	{
+		public:
+			int widthPerFrame {64};
+			int maxFrames {5};
+			Rectangle getAnimatedSource()
+			{
+				return {source.x + ((animatedEntityClock % maxFrames)*widthPerFrame), source.y, source.width, source.height};
+			}
+	};
 	void animation(bool *isRunning, std::uint64_t &animatedEntityClock, int &sleepDuration)
 	{
 		while (*isRunning)
@@ -235,10 +245,12 @@ namespace game
 	public:
 		Vector2 playerStartingPosition;
 		std::vector<Block> matter;
+		std::vector<AnimatedBlock> animatedMatter;
 		Color inheritableColor;
 		void clearAll() // Clears everything in level and sets playerStartingPosition to 0, 0
 		{
 			matter.clear();
+			animatedMatter.clear();
 			playerStartingPosition = {0, 0};
 		}
 		void generateTestLevel(Rectangle textureToApply)
@@ -447,7 +459,6 @@ namespace game
 int main(int argc, char **argv)
 {
 	game::Screen mainScreen;
-	std::uint64_t animatedEntityClock = 0;
 	std::vector<int> inputs(10, 0);
 	{
 		if (argc > 1)
@@ -488,7 +499,7 @@ int main(int argc, char **argv)
 		bool inConsole{0};
 		bool showFPS{0};
 		std::string commandLineBuffer;
-		Rectangle blocks[3] = {BRICKTEXTURE, DIRTTEXTURE, GRASSTEXTURE};
+		Rectangle blocks[4] = {BRICKTEXTURE, DIRTTEXTURE, GRASSTEXTURE, {0, 1856, 64, 64}};
 		Vector2 snappingMousePosition;
 		game::Player slime;
 		slime.absolutePos = earth.playerStartingPosition;
@@ -541,7 +552,7 @@ int main(int argc, char **argv)
 					if (!matchFound)
 					{
 						game::Block newBlock;
-						newBlock.source = blocks[editMode % 3];
+						newBlock.source = blocks[editMode % 4];
 						newBlock.absolutePos = snappingMousePosition;
 						earth.matter.push_back(newBlock);
 					}
@@ -572,6 +583,7 @@ int main(int argc, char **argv)
 			} });
 		while (!WindowShouldClose() && mainScreen.isRunning)
 		{
+			
 			frameTime = GetFrameTime();
 			framerate = (1 / (frameTime));
 			mainScreen.updateWindow(zoom);
