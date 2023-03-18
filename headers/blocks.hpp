@@ -139,6 +139,7 @@ namespace platformer
                         break;
                     case ('S'):
                         templatePlayer.setPosition(64 * x, 64 * y);
+                        templatePlayer.setInitialSpawnPosition(64 * x, 64 * y);
                         x++;
                         break;
                     default:

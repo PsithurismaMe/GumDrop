@@ -187,6 +187,7 @@ namespace platformer
         int isFacingLeft{0}; // Set to 64 to face right
         int speed{64};
         Vector2 velocity;
+        Vector2 initialPosition;
         Vector2 terminalVelocity{256.0f, 512.0f};
         Vector2 dragCoefficent{100.0f, 128.0f};
         bool canJump{1};
@@ -278,6 +279,7 @@ namespace platformer
             bool xAxisWillCollide;
             bool yAxisWillCollide;
             bool cWillCollide;
+            bool deadlyWillCollide;
             int indexes[3] = {-1, -1, -1};
             for (size_t i = 0; i < staticBlocks.size() && indexes[0] == -1; i++)
             {
@@ -307,6 +309,30 @@ namespace platformer
                     break;
                 }
             }
+            for (int i = 0; i < animatedBlocks.size(); i++)
+            {
+                if (animatedBlocks.at(i)->getType() == 4 && animatedBlocks.at(i)->getFrameDisplayed() == 1)
+                {
+                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
+                    deadlyWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 64, cache.y + 19, 2000, 28});
+                    if (deadlyWillCollide)
+                    {
+                        inGamePositionDimension.x = initialPosition.x;
+                        inGamePositionDimension.y = initialPosition.y;
+                        break;
+                    }
+                }
+                else if (animatedBlocks.at(i)->getType() == 5)
+                {
+                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
+                    if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x, cache.y, cache.width - 8, cache.height - 8}))
+                    {
+                        inGamePositionDimension.x = initialPosition.x;
+                        inGamePositionDimension.y = initialPosition.y;
+                        break;
+                    }
+                }
+            }
             std::abs(velocity.x) > 0.3f ? velocity.x = velocity.x : velocity.x = 0;
             inGamePositionDimension.x += (velocity.x * frameDelta * !xAxisWillCollide);
             inGamePositionDimension.y += (velocity.y * frameDelta * !yAxisWillCollide);
@@ -320,6 +346,11 @@ namespace platformer
                 playerDesiredMovement.y -= 200;
                 canJump = 0;
             }
+        }
+        void setInitialSpawnPosition(int x, int y)
+        {
+            initialPosition.x = x;
+            initialPosition.y = y;
         }
     };
     class console
@@ -361,6 +392,7 @@ namespace platformer
             {
                 DrawFPS(positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y);
             }
+            if (isInConsole)
             {
                 if (keypress != 0)
                 {
@@ -376,9 +408,6 @@ namespace platformer
                     toggleConsole();
                     cin.clear();
                 }
-            }
-            if (isInConsole)
-            {
                 DrawText(cin.c_str(), (positionToStartDrawing.x * windowResolution.x), (positionToStartDrawing.y * windowResolution.y), hypotenuse * 0.01f, BLUE);
             }
         }
