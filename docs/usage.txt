@@ -30,3 +30,6 @@ SECTION 2
 
     This will toggle an FPS Counter in the top-left corner
 
+    - /load <levelname>
+
+    This will cause the game to restart and load the level specified using <levelname>. Entering a non-existent filename won't do anything.

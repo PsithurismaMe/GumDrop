@@ -374,7 +374,7 @@ namespace platformer
         std::vector<std::string> arguments;
         bool isInConsole;
         bool fpsIsVisible {0};
-        void parseArguments()
+        int parseArguments(std::string & filename)
         {
             arguments.clear();
             std::string buffer;
@@ -389,17 +389,28 @@ namespace platformer
                 {
                     fpsIsVisible = !fpsIsVisible;
                 }
+                if (arguments.at(0) == "/load")
+                {
+                    std::string flnm = "levels/" + arguments.at(1);
+                    if (FileExists(flnm.c_str()))
+                    {
+                        filename = arguments.at(1);
+                        return -1;
+                    }
+                }
             }
             catch(const std::exception& e)
             {
                 std::cerr << e.what() << '\n';
             }
+            return 0;
             
         }
 
     public:
-        void draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress)
+        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string & filename)
         {
+            int returnVal = 0;
             if (fpsIsVisible)
             {
                 DrawFPS(positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y);
@@ -416,12 +427,13 @@ namespace platformer
                 }
                 if (IsKeyPressed(KEY_ENTER))
                 {
-                    parseArguments();
+                    returnVal = parseArguments(filename);
                     toggleConsole();
                     cin.clear();
                 }
                 DrawText(cin.c_str(), (positionToStartDrawing.x * windowResolution.x), (positionToStartDrawing.y * windowResolution.y), hypotenuse * 0.01f, BLUE);
             }
+            return returnVal;
         }
         console()
         {
