@@ -209,6 +209,18 @@ namespace platformer
             playerDesiredMovement.x -= x;
             playerDesiredMovement.y -= y;
         }
+        void draw(Texture2D &spritesheet)
+        {
+            if (iterable != nullptr)
+            {
+                frameToDisplay = (*iterable % maximumFrames);
+                DrawTexturePro(spritesheet, {(frameToDisplay * pixelsToOffsetUponUpdate.x) + initialPositionOnSpriteSheet.x, (frameToDisplay * pixelsToOffsetUponUpdate.y) + initialPositionOnSpriteSheet.y - isFacingLeft, initialPositionOnSpriteSheet.width, initialPositionOnSpriteSheet.height}, inGamePositionDimension, {0, 0}, 0, WHITE);
+            }
+            else
+            {
+                std::cerr << "Object is missing iterable" << '\n';
+            }
+        }
         player()
         {
             velocity = {0.0f, 0.0f};
@@ -242,7 +254,7 @@ namespace platformer
         }
         void doPhysicsStep(std::vector<stationaryStaticBlock *> &staticBlocks, std::vector<stationaryAnimatedBlock *> &animatedBlocks, float frameDelta)
         {
-            velocity.y += speed * dragCoefficent.y * frameDelta;
+            velocity.y += 1 * dragCoefficent.y * frameDelta;
             velocity.x > 0 ? velocity.x -= 1 *dragCoefficent.x *frameDelta : velocity.x += 1 * dragCoefficent.x * frameDelta;
             velocity.x += playerDesiredMovement.x;
             velocity.y += playerDesiredMovement.y;
@@ -301,14 +313,24 @@ namespace platformer
             velocity.x = velocity.x * !xAxisWillCollide;
             velocity.y = velocity.y * !yAxisWillCollide;
         }
+        void jump()
+        {
+            if (canJump)
+            {
+                playerDesiredMovement.y -= 200;
+                canJump = 0;
+            }
+        }
     };
     class console
     {
     protected:
         Vector2 positionToStartDrawing;
+        Vector2 positionToDrawFPS;
         std::string cin;
         std::vector<std::string> arguments;
         bool isInConsole;
+        bool fpsIsVisible {0};
         void parseArguments()
         {
             arguments.clear();
@@ -318,11 +340,27 @@ namespace platformer
             {
                 arguments.push_back(buffer);
             }
+            try
+            {
+                if (arguments.at(0) == "/showfps")
+                {
+                    fpsIsVisible = !fpsIsVisible;
+                }
+            }
+            catch(const std::exception& e)
+            {
+                std::cerr << e.what() << '\n';
+            }
+            
         }
 
     public:
         void draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress)
         {
+            if (fpsIsVisible)
+            {
+                DrawFPS(positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y);
+            }
             {
                 if (keypress != 0)
                 {
@@ -334,6 +372,9 @@ namespace platformer
                 }
                 if (IsKeyPressed(KEY_ENTER))
                 {
+                    parseArguments();
+                    toggleConsole();
+                    cin.clear();
                 }
             }
             if (isInConsole)
@@ -344,6 +385,7 @@ namespace platformer
         console()
         {
             positionToStartDrawing = {0.1f, 0.8f};
+            positionToDrawFPS = {0.1f, 0.1f};
             isInConsole = 0;
         }
         void toggleConsole()

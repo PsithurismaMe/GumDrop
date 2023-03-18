@@ -56,8 +56,14 @@ int main(int argc, char **argv)
         EndMode2D();
         console.draw(resolution, hypotenuse, keypress);
         EndDrawing();
+        keypress = GetCharPressed();
+        if (IsKeyPressed(KEY_SLASH))
+        {
+            console.toggleConsole();
+        }
         platformer::settings::activeKeypresses[0] = IsKeyDown(KEY_D);
         platformer::settings::activeKeypresses[1] = IsKeyDown(KEY_A);
+        platformer::settings::activeKeypresses[2] = IsKeyDown(KEY_SPACE);
 
         
     }

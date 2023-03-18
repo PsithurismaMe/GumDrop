@@ -58,14 +58,18 @@ namespace platformer
                 if (activeKeypresses[0])
                 {
                     pplayer.incrementDesiredMovement(pplayer.getSpeed(), 0);
-                    pplayer.setFaceDirection(64);
+                    pplayer.setFaceDirection(0);
                     activeKeypresses[0] = 0;
                 }
                 if (activeKeypresses[1])
                 {
                     pplayer.decrementDesiredMovement(pplayer.getSpeed(), 0);
-                    pplayer.setFaceDirection(0);
+                    pplayer.setFaceDirection(64);
                     activeKeypresses[1] = 0;
+                }
+                if (activeKeypresses[2])
+                {
+                    pplayer.jump();
                 }
                 if (std::chrono::system_clock::now() < estimatedCompletionTime)
                 {
