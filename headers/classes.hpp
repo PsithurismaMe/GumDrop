@@ -58,6 +58,7 @@ namespace platformer
         {
             return {inGamePositionDimension.width, inGamePositionDimension.height};
         }
+        // Returns the in game position plus width and height
         Rectangle getRectangle()
         {
             return inGamePositionDimension;
@@ -76,14 +77,17 @@ namespace platformer
         int type;
 
     public:
+        // Sets the portion of spritesheet.png to use as a texture
         void setPositionOnSpriteSheet(Rectangle rect)
         {
             positionOnSpriteSheet = rect;
         }
+        // Returns the portion of spritesheet.png used as a texture
         Rectangle getPositionOnSpriteSheet()
         {
             return positionOnSpriteSheet;
         }
+        // Draws this object to the screen
         void draw(Texture2D &spritesheet)
         {
             DrawTexturePro(spritesheet, positionOnSpriteSheet, inGamePositionDimension, {0, 0}, 0, WHITE);
@@ -119,33 +123,41 @@ namespace platformer
         int type;
 
     public:
+        // Sets the initial position of spritesheet.png to use as a texture
         void setInitialPositionOnSpriteSheet(Rectangle rect)
         {
             initialPositionOnSpriteSheet = rect;
         }
+        // (Position of spritesheet.png used as a texure) = initialPositionOnSpriteSheet + (frameToDisplay * pixelsToOffset) 
         void setPixelsToOffset(int dx, int dy)
         {
             pixelsToOffsetUponUpdate.x = dx;
             pixelsToOffsetUponUpdate.y = dy;
         }
+        // Maximum value that frameToDisplay will reach
         void setMaxFrames(int f)
         {
             maximumFrames = f;
         }
+        // This must be set for animation to work. The dereferenced size_t must be changing constantly.
         void setIterablePointer(size_t *ptr)
         {
             iterable = ptr;
         }
+        // Returns the initial position of spritesheet.png to use as a texture
         Rectangle getInitialSpritePosition()
         {
             return initialPositionOnSpriteSheet;
         }
+        // Returns the currently displayed frame
         int getFrameDisplayed()
         {
             return frameToDisplay;
         }
+        // Draws self to screen
         void draw(Texture2D &spritesheet)
         {
+            // Iterable must be assigned to a size_t before this can be drawn
             if (iterable != nullptr)
             {
                 frameToDisplay = (*iterable % maximumFrames);
