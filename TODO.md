@@ -2,7 +2,7 @@
 - [X] Do collision checking in a different thread from the one drawing
 - [X] Get fonts to scale according to screen
 - [ ] Add more blocks
-- [ ] Make lasers and lava functional
+- [X] Make lasers and lava functional
 - [ ] Make an emission map for light emitting blocks
 - [X] Untie user inputs from framerate
 - [X] Implement OPTIONAL framerate cap
