@@ -1,0 +1,32 @@
+SECTION 1
+    Level editing
+
+    Levels can be created by writing a text containing a rectangle.
+    Characters:
+    '.' - Air
+    'M' - Lava
+    'L' - Laser
+    'B' - Purple brick
+    'D' - Dirt
+    'G' - Grass
+    'S' - Player spawn
+
+
+    Example
+    ________________________________________
+    ..........
+    ....S.....
+    ..........
+    MBDGBBBBBL
+    ________________________________________
+
+    
+SECTION 2
+    Command line usage
+
+    The game has a command line that can be accessed by pressing '/'. Note that entering command mode DOES NOT BLOCK player movement. As of writing there are few commands.
+
+    - /showfps 
+
+    This will toggle an FPS Counter in the top-left corner
+
