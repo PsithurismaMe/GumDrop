@@ -1,4 +1,4 @@
-#include "headers/blocks.hpp"
+#include "headers/settings.hpp"
 
 int main(int argc, char **argv)
 {
@@ -15,22 +15,11 @@ int main(int argc, char **argv)
     bool workerStatus{1};
     wchar_t keypress{0};
     platformer::console console;
-    /*
-    staticBlocks.push_back(new platformer::stationaryStaticBlock);
-    staticBlocks.push_back(new platformer::stationaryStaticBlock);
-    staticBlocks.push_back(new platformer::stationaryStaticBlock);
-    animatedBlocks.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::laser, 0, 0, 64, 64, &globalIterables[0]));
-    animatedBlocks.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::lava, 64, 0, 64, 64, &globalIterables[1]));
-    (*staticBlocks.at(0)) = platformer::blocks::brick;
-    (*staticBlocks.at(1)) = platformer::blocks::dirt;
-    (*staticBlocks.at(2)) = platformer::blocks::grass;
-    for (int i = 0 ; i < 3; i++)
-    {
-        staticBlocks.at(i)->setPosition(64 * i, 0);
-        staticBlocks.at(i)->setDimentions(64, 64);
-    */
+    platformer::player player = platformer::blocks::templatePlayer;
+    player.setIterablePointer(&globalIterables[1]);
     std::thread everyOneSec(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[0]), std::ref(workerStatus), 1000);
     std::thread every100ms(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[1]), std::ref(workerStatus), 100);
+    std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses));
     for (auto i : animatedBlocks)
     {
         i->setIterablePointer(&globalIterables[1]);
@@ -40,8 +29,11 @@ int main(int argc, char **argv)
         resolution.x = GetRenderWidth();
         resolution.y = GetRenderHeight();
         hypotenuse = std::sqrt((resolution.x * resolution.x) + (resolution.y * resolution.y));
+        platformer::blocks::inGameCamera.offset = {resolution.x / 2, resolution.y / 2};
+        platformer::blocks::inGameCamera.target = player.getPosition();
         BeginDrawing();
         ClearBackground(BLACK);
+        BeginMode2D(platformer::blocks::inGameCamera);
         // Draw laser beams
         for (int i = 0; i < animatedBlocks.size(); i++)
         {
@@ -60,14 +52,19 @@ int main(int argc, char **argv)
         {
             animatedBlocks.at(i)->draw(spritesheet);
         }
-
+        player.draw(spritesheet);
+        EndMode2D();
         console.draw(resolution, hypotenuse, keypress);
         EndDrawing();
-        keypress = GetCharPressed();
+        platformer::settings::activeKeypresses[0] = IsKeyDown(KEY_D);
+        platformer::settings::activeKeypresses[1] = IsKeyDown(KEY_A);
+
+        
     }
     workerStatus = 0;
     every100ms.join();
     everyOneSec.join();
+    every16ms.join();
     for (int i = 0; i < staticBlocks.size(); i++)
     {
         delete staticBlocks.at(i);

@@ -17,7 +17,7 @@ namespace platformer
     class collidable
     {
     protected:
-        Rectangle inGamePositionDimension {0, 0, 64, 64};
+        Rectangle inGamePositionDimension{0, 0, 64, 64};
         bool collisionEnabled;
         int groupNumber;
 
@@ -74,6 +74,7 @@ namespace platformer
     protected:
         Rectangle positionOnSpriteSheet;
         int type;
+
     public:
         void setPositionOnSpriteSheet(Rectangle rect)
         {
@@ -83,15 +84,14 @@ namespace platformer
         {
             return positionOnSpriteSheet;
         }
-        void draw(Texture2D & spritesheet)
+        void draw(Texture2D &spritesheet)
         {
             DrawTexturePro(spritesheet, positionOnSpriteSheet, inGamePositionDimension, {0, 0}, 0, WHITE);
         }
         stationaryStaticBlock()
         {
-
         }
-        stationaryStaticBlock(stationaryStaticBlock & whereToInherit, int globalx, int globaly, int wid, int hgt)
+        stationaryStaticBlock(stationaryStaticBlock &whereToInherit, int globalx, int globaly, int wid, int hgt)
         {
             (*this) = whereToInherit;
             inGamePositionDimension.x = globalx;
@@ -114,9 +114,10 @@ namespace platformer
         Rectangle initialPositionOnSpriteSheet;
         Vector2 pixelsToOffsetUponUpdate;
         int maximumFrames = 2;
-        int frameToDisplay {0};
-        size_t * iterable = nullptr;
+        int frameToDisplay{0};
+        size_t *iterable = nullptr;
         int type;
+
     public:
         void setInitialPositionOnSpriteSheet(Rectangle rect)
         {
@@ -131,7 +132,7 @@ namespace platformer
         {
             maximumFrames = f;
         }
-        void setIterablePointer(size_t * ptr)
+        void setIterablePointer(size_t *ptr)
         {
             iterable = ptr;
         }
@@ -143,7 +144,7 @@ namespace platformer
         {
             return frameToDisplay;
         }
-        void draw(Texture2D & spritesheet)
+        void draw(Texture2D &spritesheet)
         {
             if (iterable != nullptr)
             {
@@ -157,9 +158,8 @@ namespace platformer
         }
         stationaryAnimatedBlock()
         {
-
         }
-        stationaryAnimatedBlock(stationaryAnimatedBlock & whereToInherit, int globalx, int globaly, int wid, int hgt, size_t * i)
+        stationaryAnimatedBlock(stationaryAnimatedBlock &whereToInherit, int globalx, int globaly, int wid, int hgt, size_t *i)
         {
             (*this) = whereToInherit;
             inGamePositionDimension.x = globalx;
@@ -185,18 +185,36 @@ namespace platformer
     {
     protected:
         int isFacingLeft{0}; // Set to 64 to face right
-        int speed{1};
+        int speed{64};
         Vector2 velocity;
         Vector2 terminalVelocity{256.0f, 512.0f};
         Vector2 dragCoefficent{100.0f, 128.0f};
         bool canJump{1};
         int isMoving{0};
         Vector2 playerDesiredMovement;
+
     public:
+        void setDesiredMovement(float x, float y)
+        {
+            playerDesiredMovement.x = x;
+            playerDesiredMovement.y = y;
+        }
+        void incrementDesiredMovement(float x, float y)
+        {
+            playerDesiredMovement.x += x;
+            playerDesiredMovement.y += y;
+        }
+        void decrementDesiredMovement(float x, float y)
+        {
+            playerDesiredMovement.x -= x;
+            playerDesiredMovement.y -= y;
+        }
         player()
         {
             velocity = {0.0f, 0.0f};
             playerDesiredMovement = {0.0f, 0.0f};
+            inGamePositionDimension.width = 64;
+            inGamePositionDimension.height = 64;
         }
         player(int spd, int tmvX, int tmvY, int drgcX, int drgcY)
         {
@@ -208,7 +226,81 @@ namespace platformer
             dragCoefficent.x = drgcX;
             dragCoefficent.y = drgcY;
         }
+        // Set val to be 64 to face right
+        void setFaceDirection(char val)
+        {
+            isFacingLeft = val;
+        }
+        int getSpeed()
+        {
+            return speed;
+        }
+        Rectangle getPredictedPosition(float timeDelta, int xAxisOverride, int yAxisOverride)
+        {
+            // This is slightly smaller than the actual sprite because floating point approximation limitations
+            return {(inGamePositionDimension.x) + (velocity.x * timeDelta * xAxisOverride), (inGamePositionDimension.y + 23) + (velocity.y * timeDelta * yAxisOverride), 63, 41};
+        }
+        void doPhysicsStep(std::vector<stationaryStaticBlock *> &staticBlocks, std::vector<stationaryAnimatedBlock *> &animatedBlocks, float frameDelta)
+        {
+            velocity.y += speed * dragCoefficent.y * frameDelta;
+            velocity.x > 0 ? velocity.x -= 1 *dragCoefficent.x *frameDelta : velocity.x += 1 * dragCoefficent.x * frameDelta;
+            velocity.x += playerDesiredMovement.x;
+            velocity.y += playerDesiredMovement.y;
+            if (velocity.x > terminalVelocity.x)
+            {
+                velocity.x = terminalVelocity.x;
+            }
+            if (velocity.y > terminalVelocity.y)
+            {
+                velocity.y = terminalVelocity.y;
+            }
+            if (velocity.x < terminalVelocity.x * -1)
+            {
+                velocity.x = terminalVelocity.x * -1;
+            }
+            if (velocity.y < terminalVelocity.y * -1)
+            {
+                velocity.y = terminalVelocity.y * -1;
+            }
+            playerDesiredMovement = {0, 0};
+            bool xAxisWillCollide;
+            bool yAxisWillCollide;
+            bool cWillCollide;
+            int indexes[3] = {-1, -1, -1};
+            for (size_t i = 0; i < staticBlocks.size() && indexes[0] == -1; i++)
+            {
+                xAxisWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 0), staticBlocks.at(i)->getRectangle());
+                if (xAxisWillCollide)
+                {
+                    indexes[0] = i;
+                    break;
+                }
+            }
+            for (size_t i = 0; i < staticBlocks.size() && indexes[1] == -1; i++)
+            {
 
+                yAxisWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 0, 1), staticBlocks.at(i)->getRectangle());
+                if (yAxisWillCollide)
+                {
+                    canJump = 1;
+                    break;
+                }
+            }
+            for (size_t i = 0; i < staticBlocks.size() && indexes[2] == -1; i++)
+            {
+                cWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), staticBlocks.at(i)->getRectangle());
+                if (cWillCollide)
+                {
+                    indexes[2] = i;
+                    break;
+                }
+            }
+            std::abs(velocity.x) > 0.3f ? velocity.x = velocity.x : velocity.x = 0;
+            inGamePositionDimension.x += (velocity.x * frameDelta * !xAxisWillCollide);
+            inGamePositionDimension.y += (velocity.y * frameDelta * !yAxisWillCollide);
+            velocity.x = velocity.x * !xAxisWillCollide;
+            velocity.y = velocity.y * !yAxisWillCollide;
+        }
     };
     class console
     {
@@ -257,6 +349,43 @@ namespace platformer
         void toggleConsole()
         {
             isInConsole = !isInConsole;
+        }
+    };
+    class setting
+    {
+    protected:
+        std::string humanReadableName;
+        int value{-1};
+
+    public:
+        setting(const char *name, int val)
+        {
+            value = val;
+            humanReadableName = name;
+        }
+        setting()
+        {
+        }
+        void setValue(int val)
+        {
+            value = val;
+        }
+        int getValue()
+        {
+            return value;
+        }
+        std::string getName()
+        {
+            return humanReadableName;
+        }
+        void setName(const char *name)
+        {
+            humanReadableName = name;
+        }
+        void setAll(const char *name, int val)
+        {
+            value = val;
+            humanReadableName = name;
         }
     };
 }

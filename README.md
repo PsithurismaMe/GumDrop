@@ -17,7 +17,7 @@ pacman -S raylib gcc
 
 ## To actually compile it
   ```
-g++ finalRefactor.cpp -lraylib -O3
+g++ main.cpp -lraylib -O3
   ```
 
 <br/>
