@@ -3,7 +3,7 @@
 int main(int argc, char **argv)
 {
     bool isRunning{1};
-    std::string filename = "test.lvl";
+    std::string filename = "myLevel.lvl";
     while (isRunning)
     {
         std::vector<platformer::stationaryStaticBlock *> staticBlocks;
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
                 {
                     animatedBlocks.at(i)->setIterablePointer(&globalIterables[0]);
                     Vector2 source = animatedBlocks.at(i)->getPosition();
-                    DrawRectangle(source.x + 64, source.y + 19, 2000, 28, {0, 255, 0, 255});
+                    DrawRectangle(source.x + 64, source.y + 19, animatedBlocks.at(i)->getRayLength(), 28, {0, 255, 0, 255});
                 }
             }
             for (int i = 0; i < staticBlocks.size(); i++)

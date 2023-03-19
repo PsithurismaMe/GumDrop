@@ -148,6 +148,10 @@ namespace platformer
                     }
                 }
                 UnloadFileText(readme);
+                for (int i = 0; i < aDest.size(); i++)
+                {
+                    aDest.at(i)->computeRay(dest);
+                }
             }
         }
     }

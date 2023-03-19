@@ -121,8 +121,33 @@ namespace platformer
         int frameToDisplay{0};
         size_t *iterable = nullptr;
         int type;
+        int rayLength {0};
 
     public:
+        // Computes the max distance a laser beam will travel
+        void computeRay(std::vector<stationaryStaticBlock *> obstecules)
+        {
+            bool hasCollided {0};
+            for (size_t k = 0; k < 4000 && !hasCollided; k++)
+            {
+                for (size_t i = 0; i < obstecules.size(); i++)
+                {
+                    Vector2 placeholder = {inGamePositionDimension.x, inGamePositionDimension.y};
+                    if (CheckCollisionPointRec({placeholder.x + 64 + k, placeholder.y + 32}, obstecules.at(i)->getRectangle()))
+                    {
+                        hasCollided = 1;
+                        rayLength = k;
+                        break;
+                    }
+                }
+                rayLength = k;
+            }
+        }
+        // Returns the distance a laser beam will travel. This should be 0 for anything else
+        int getRayLength()
+        {
+            return rayLength;
+        }
         // Sets the initial position of spritesheet.png to use as a texture
         void setInitialPositionOnSpriteSheet(Rectangle rect)
         {
@@ -326,7 +351,7 @@ namespace platformer
                 if (animatedBlocks.at(i)->getType() == 4 && animatedBlocks.at(i)->getFrameDisplayed() == 1)
                 {
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
-                    deadlyWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 64, cache.y + 19, 2000, 28});
+                    deadlyWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 64, cache.y + 19, (float) animatedBlocks.at(i)->getRayLength(), 28});
                     if (deadlyWillCollide)
                     {
                         inGamePositionDimension.x = initialPosition.x;
@@ -355,7 +380,7 @@ namespace platformer
         {
             if (canJump)
             {
-                playerDesiredMovement.y -= 200;
+                playerDesiredMovement.y -= 300;
                 canJump = 0;
             }
         }
