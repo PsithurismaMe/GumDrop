@@ -22,6 +22,25 @@ int main(int argc, char **argv)
         platformer::console console;
         platformer::player player = platformer::blocks::templatePlayer;
         player.setIterablePointer(&globalIterables[1]);
+        std::thread test([&]
+        {
+            while (workerStatus)
+            {
+                for (size_t i = 0; i < staticBlocks.size(); i++)
+                {
+                    Vector2 cache = GetWorldToScreen2D(staticBlocks.at(i)->getPosition(), platformer::blocks::inGameCamera);
+                    if (cache.x < resolution.x && cache.x > 0 && cache.y < resolution.y && cache.y > 0)
+                    {
+                        staticBlocks.at(i)->setVisibility(1);
+                    }
+                    else
+                    {
+                        staticBlocks.at(i)->setVisibility(0);
+                    }
+                }
+            }
+            
+        });
         std::thread everyOneSec(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[0]), std::ref(workerStatus), 1000);
         std::thread every100ms(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[1]), std::ref(workerStatus), 100);
         std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses));
@@ -52,7 +71,11 @@ int main(int argc, char **argv)
             }
             for (int i = 0; i < staticBlocks.size(); i++)
             {
-                staticBlocks.at(i)->draw(spritesheet);
+                if (staticBlocks.at(i)->getVisibility())
+                {
+                    staticBlocks.at(i)->draw(spritesheet);
+                }   
+                
             }
             for (int i = 0; i < animatedBlocks.size(); i++)
             {
@@ -78,6 +101,7 @@ int main(int argc, char **argv)
         every100ms.join();
         everyOneSec.join();
         every16ms.join();
+        test.join();
         for (int i = 0; i < staticBlocks.size(); i++)
         {
             delete staticBlocks.at(i);

@@ -1,12 +1,13 @@
-- [ ] Optimize drawing and collision checking
+- [X] Optimize drawing and collision checking
 - [X] Do collision checking in a different thread from the one drawing
 - [X] Get fonts to scale according to screen
 - [ ] Add more blocks
 - [X] Make lasers and lava functional
+- [ ] Add functional NPCs
 - [ ] Make an emission map for light emitting blocks
 - [X] Untie user inputs from framerate
-- [X] Implement OPTIONAL framerate cap
 - [ ] Serialize background color and/or Background image
 - [ ] Write a storyline for the game
+- [ ] Write levels that are appropriate for the storyline
 - [X] Reimplement collision checking
 - [X] Reimplement player drawing
