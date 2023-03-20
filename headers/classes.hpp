@@ -141,7 +141,7 @@ namespace platformer
         void computeRay(std::vector<stationaryStaticBlock *> obstecules)
         {
             bool hasCollided{0};
-            for (size_t k = 0; k < 4000 && !hasCollided; k++)
+            for (size_t k = 0; k < 4000 && !hasCollided; k += 64)
             {
                 for (size_t i = 0; i < obstecules.size(); i++)
                 {
@@ -418,8 +418,10 @@ namespace platformer
         Vector2 positionToDrawFPS;
         std::string cin;
         std::vector<std::string> arguments;
+        std::array<float, 100> frameTimes;
         bool isInConsole;
         bool fpsIsVisible{0};
+        int indexToEdit {0};
         int parseArguments(std::string &filename)
         {
             arguments.clear();
@@ -484,7 +486,24 @@ namespace platformer
             int returnVal = 0;
             if (fpsIsVisible)
             {
+                frameTimes[indexToEdit] = GetFrameTime();
+                indexToEdit++;
+                indexToEdit = indexToEdit % 100;
+                float sum {0};
+                for (int i = 0 ; i < 100 ; i++)
+                {
+                    sum += frameTimes[indexToEdit];
+                }
+                float mean = sum / 100.0f;
+                float variance {0};
+                for (int i = 0; i < 100; i++)
+                {
+                    variance += pow((frameTimes[i] - mean), 2);
+                }
+                variance /= 100.0f;
+                float stdv = sqrt(variance);
                 DrawFPS(positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y);
+                DrawText(TextFormat("stddvn: %f", stdv), positionToDrawFPS.x * windowResolution.x, (0.1f + positionToDrawFPS.y) * windowResolution.y, 0.01f * hypotenuse, YELLOW);
             }
             if (isInConsole)
             {

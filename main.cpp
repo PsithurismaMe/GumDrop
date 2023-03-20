@@ -12,6 +12,13 @@ int main(int argc, char **argv)
         platformer::blocks::init();
         platformer::ui::init();
         InitWindow(800, 400, "A Window");
+        {
+            unsigned int threads = std::thread::hardware_concurrency();
+            if (threads < 5)
+            {
+                std::cerr << "Your system supports only " << threads << " concurrent threads. You may experience stuttering or other bugs.\n";
+            }
+        }
         SetExitKey(-1);
         std::string temporaryFileName = "levels/" + filename;
         platformer::blocks::loadFromFile(temporaryFileName.c_str(), staticBlocks, animatedBlocks);
