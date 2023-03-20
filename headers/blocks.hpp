@@ -12,6 +12,7 @@ namespace platformer
         stationaryAnimatedBlock lava; // 5
         player templatePlayer;
         Camera2D inGameCamera;
+        // Create template blocks on the stack
         void init()
         {
             grass.setPositionOnSpriteSheet({0, 0, 64, 64});
@@ -77,7 +78,7 @@ namespace platformer
                 }
                 else
                 {
-                    std::cerr << "Physics thread cannot keep up! Physics will be innaccurate." << '\n';
+                    std::cerr << "WARN: SYSTEM: Physics thread cannot keep up! Physics will be innaccurate" << '\n';
                 }
             }
         }
@@ -105,7 +106,6 @@ namespace platformer
                 int y = 0;
                 dest.clear();
                 aDest.clear();
-                // To do : serialize more blocks
                 for (size_t i = 0; readme[i] != '\0'; i++)
                 {
                     switch (readme[i])

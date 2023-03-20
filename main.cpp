@@ -2,39 +2,53 @@
 
 int main(int argc, char **argv)
 {
+    // Seed random number generator
     srand(time(nullptr));
     bool isRunning{1};
+    // Specify the level to load upon startup
     std::string filename = "myLevel.lvl";
     while (isRunning)
     {
+        // Create vectors to store blocks on the heap
         std::vector<platformer::stationaryStaticBlock *> staticBlocks;
         std::vector<platformer::stationaryAnimatedBlock *> animatedBlocks;
+        // Instansiate any template blocks on the stack
         platformer::blocks::init();
         platformer::ui::init();
+        // Initialize raylib
         InitWindow(800, 400, "A Window");
+        // Warn the user that this multithreaded program may not run correctly on old systems.
         {
             unsigned int threads = std::thread::hardware_concurrency();
             if (threads < 5)
             {
-                std::cerr << "Your system supports only " << threads << " concurrent threads. You may experience stuttering or other bugs.\n";
+                std::cerr << "WARN: SYSTEM: Your system supports only " << threads << " concurrent threads. You may experience stuttering or other bugs. Capping your framerate may resolve stuttering\n";
             }
         }
+        // Change raylibs default exit key to something impossible to press
         SetExitKey(-1);
+        // Load the level and store any blocks in the vectors above
         std::string temporaryFileName = "levels/" + filename;
         platformer::blocks::loadFromFile(temporaryFileName.c_str(), staticBlocks, animatedBlocks);
+        // Allow the window manager to handle resizing
         SetWindowState(FLAG_WINDOW_RESIZABLE);
+        // Load textures
         Texture2D spritesheet = LoadTexture("assets/tilesheet.png");
         Vector2 resolution;
         Vector2 mousePosition;
         float hypotenuse;
+        // These variables are used for animation
         size_t globalIterables[2] = {0, 0};
         bool workerStatus{1};
         bool isPaused{0};
         wchar_t keypress{0};
         platformer::console console;
+        // Instansiate a player and copy the templatePlayer
         platformer::player player = platformer::blocks::templatePlayer;
+        // Used for animation
         player.setIterablePointer(&globalIterables[1]);
-        std::thread test([&]
+        // Used to optimize collision checking and drawing
+        std::thread optimization([&]
                          {
                              while (workerStatus)
                              {
@@ -55,6 +69,7 @@ int main(int argc, char **argv)
         std::thread everyOneSec(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[0]), std::ref(workerStatus), 1000);
         std::thread every100ms(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[1]), std::ref(workerStatus), 100);
         std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses));
+        // Assign any animated blocks a pointer to a size_t
         for (auto i : animatedBlocks)
         {
             i->setIterablePointer(&globalIterables[1]);
@@ -87,6 +102,7 @@ int main(int argc, char **argv)
                         DrawRectangle(source.x + 64, source.y + 19, animatedBlocks.at(i)->getRayLength(), 28, {0, 255, 0, 255});
                     }
                 }
+                // Draw regular blocks
                 for (int i = 0; i < staticBlocks.size(); i++)
                 {
                     if (staticBlocks.at(i)->getVisibility())
@@ -94,6 +110,7 @@ int main(int argc, char **argv)
                         staticBlocks.at(i)->draw(spritesheet);
                     }
                 }
+                // Draw other animated blocks
                 for (int i = 0; i < animatedBlocks.size(); i++)
                 {
                     animatedBlocks.at(i)->draw(spritesheet);
@@ -101,6 +118,7 @@ int main(int argc, char **argv)
                 player.draw(spritesheet);
                 EndMode2D();
             }
+            // Since you can load other levels from the console, it must be able to break this while loop without closing the program.
             if (console.draw(resolution, hypotenuse, keypress, filename) == -1)
             {
                 break;
@@ -123,7 +141,8 @@ int main(int argc, char **argv)
         every100ms.join();
         everyOneSec.join();
         every16ms.join();
-        test.join();
+        optimization.join();
+        // Avoid memory leaks
         for (int i = 0; i < staticBlocks.size(); i++)
         {
             delete staticBlocks.at(i);

@@ -12,7 +12,6 @@
 namespace platformer
 {
     // All objects that are collidable must be derived from this parent class
-    // Everything is in charge of drawing itself
     // No collidable should be deleted or added UNTIL ALL THREADS are done accessing it
     class collidable
     {
@@ -137,7 +136,7 @@ namespace platformer
         int rayLength{0};
 
     public:
-        // Computes the max distance a laser beam will travel
+        // Computes the max distance a laser beam will travel. Gives up if it exceeds 4000 pixels
         void computeRay(std::vector<stationaryStaticBlock *> obstecules)
         {
             bool hasCollided{0};
@@ -495,6 +494,8 @@ namespace platformer
                     sum += frameTimes[indexToEdit];
                 }
                 float mean = sum / 100.0f;
+                // TO DO: Make toggleable
+                /*
                 float variance {0};
                 for (int i = 0; i < 100; i++)
                 {
@@ -502,8 +503,9 @@ namespace platformer
                 }
                 variance /= 100.0f;
                 float stdv = sqrt(variance);
-                DrawFPS(positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y);
-                DrawText(TextFormat("stddvn: %f", stdv), positionToDrawFPS.x * windowResolution.x, (0.1f + positionToDrawFPS.y) * windowResolution.y, 0.01f * hypotenuse, YELLOW);
+                */
+                DrawText(TextFormat("FPS: %d", (int)(1.0f/mean)), positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y, 0.01f * hypotenuse, YELLOW);
+                //DrawText(TextFormat("stddvn: %f", stdv), positionToDrawFPS.x * windowResolution.x, (0.1f + positionToDrawFPS.y) * windowResolution.y, 0.01f * hypotenuse, YELLOW);
             }
             if (isInConsole)
             {
