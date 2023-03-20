@@ -383,7 +383,7 @@ namespace platformer
                 else if (animatedBlocks.at(i)->getType() == 5)
                 {
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
-                    if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x, cache.y, cache.width - 8, cache.height - 8}))
+                    if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4 , cache.width - 8, cache.height - 8}))
                     {
                         inGamePositionDimension.x = initialPosition.x;
                         inGamePositionDimension.y = initialPosition.y;
@@ -443,6 +443,32 @@ namespace platformer
                         filename = arguments.at(1);
                         return -1;
                     }
+                }
+                if (arguments.at(0) == "/generate" && arguments.size() > 2)
+                {
+                    int x, y;
+                    x = std::stoi(arguments.at(1));
+                    y = std::stoi(arguments.at(2));
+                    std::string thingToOutput;
+                    std::string fileOut = "levels/";
+                    char blocks[] = ".LMBDG";
+                    for (int k = 0; k < y; k++)
+                    {
+                        for (int a = 0; a < x; a++)
+                        {
+                            thingToOutput += blocks[rand() % 6];
+                        }
+                        thingToOutput += '\n';
+                    }
+                    thingToOutput.pop_back();
+                    thingToOutput.at(rand() % thingToOutput.size() - 1) = 'S';
+                    std::string placeholder = std::to_string(rand());
+                    fileOut += placeholder;
+                    fileOut += ".lvl";
+                    SaveFileText(fileOut.c_str(), (char *)thingToOutput.c_str());
+                    filename = placeholder;
+                    filename += ".lvl";
+                    return -1;
                 }
             }
             catch (const std::exception &e)

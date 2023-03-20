@@ -2,6 +2,7 @@
 
 int main(int argc, char **argv)
 {
+    srand(time(nullptr));
     bool isRunning{1};
     std::string filename = "myLevel.lvl";
     while (isRunning)
