@@ -72,6 +72,10 @@ namespace platformer
         {
             return inGamePositionDimension;
         }
+        void setInGameRectangle(Rectangle rect)
+        {
+            inGamePositionDimension = rect;
+        }
         collidable()
         {
             inGamePositionDimension = {0.0f, 0.0f, 0.0f, 0.0f};
