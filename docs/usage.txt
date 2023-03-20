@@ -33,3 +33,7 @@ SECTION 2
     - /load <levelname>
 
     This will cause the game to restart and load the level specified using <levelname>. Entering a non-existent filename won't do anything.
+
+    - /generate <x> <y>
+
+    This will generate a random level with dimensions specified by <x> and <y>. The filename is randomly generated. Upon creation, the game will automatically load the level.
