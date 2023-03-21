@@ -20,7 +20,16 @@ SECTION 1
     MBDGBBBBBL
     ________________________________________
 
+
+    ---- EXCLUSIVE TO LEVEL EDITOR ----
+    They can also be created using the level editor. Draw your level and save it using
+
+    - /saveas <filename>
+
+    Where <filename> is the destination.
     
+    ---- END EXCLUSIVE SECTION ----
+
 SECTION 2
     Command line usage
 
