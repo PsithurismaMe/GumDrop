@@ -5,6 +5,8 @@ int main(int argc, char **argv)
     // Seed random number generator
     srand(time(nullptr));
     bool isRunning{1};
+    bool fullscreen {0};
+    Vector2 resolution = {800, 400};
     // Specify the level to load upon startup
     std::string filename = "myLevel.lvl";
     while (isRunning)
@@ -16,7 +18,7 @@ int main(int argc, char **argv)
         platformer::blocks::init();
         platformer::ui::init();
         // Initialize raylib
-        InitWindow(800, 400, "A Window");
+        InitWindow(resolution.x, resolution.y, "A Window");
         // Warn the user that this multithreaded program may not run correctly on old systems.
         {
             unsigned int threads = std::thread::hardware_concurrency();
@@ -32,9 +34,13 @@ int main(int argc, char **argv)
         platformer::blocks::loadFromFile(temporaryFileName.c_str(), staticBlocks, animatedBlocks);
         // Allow the window manager to handle resizing
         SetWindowState(FLAG_WINDOW_RESIZABLE);
+        if (fullscreen)
+        {
+            SetWindowState(FLAG_FULLSCREEN_MODE);
+        }
         // Load textures
         Texture2D spritesheet = LoadTexture("assets/tilesheet.png");
-        Vector2 resolution;
+        
         Vector2 mousePosition;
         float hypotenuse;
         // These variables are used for animation
@@ -119,7 +125,7 @@ int main(int argc, char **argv)
                 EndMode2D();
             }
             // Since you can load other levels from the console, it must be able to break this while loop without closing the program.
-            if (console.draw(resolution, hypotenuse, keypress, filename) == -1)
+            if (console.draw(resolution, hypotenuse, keypress, filename, fullscreen) == -1)
             {
                 break;
             }
@@ -133,9 +139,9 @@ int main(int argc, char **argv)
             {
                 isPaused = !isPaused;
             }
-            platformer::settings::activeKeypresses[0] = IsKeyDown(KEY_D);
-            platformer::settings::activeKeypresses[1] = IsKeyDown(KEY_A);
-            platformer::settings::activeKeypresses[2] = IsKeyDown(KEY_SPACE);
+            platformer::settings::activeKeypresses[0] = (IsKeyDown(KEY_D) xor (GetGamepadAxisMovement(0, 0) > 0));
+            platformer::settings::activeKeypresses[1] = (IsKeyDown(KEY_A) xor (GetGamepadAxisMovement(0, 0) < 0));
+            platformer::settings::activeKeypresses[2] = (IsKeyDown(KEY_SPACE) xor IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN));
         }
         workerStatus = 0;
         every100ms.join();

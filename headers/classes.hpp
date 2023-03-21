@@ -349,7 +349,6 @@ namespace platformer
                     yAxisWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 0, 1), staticBlocks.at(i)->getRectangle());
                     if (yAxisWillCollide)
                     {
-                        canJump = 1;
                         break;
                     }
                 }
@@ -390,6 +389,7 @@ namespace platformer
                     }
                 }
             }
+            canJump = yAxisWillCollide;
             std::abs(velocity.x) > 0.3f ? velocity.x = velocity.x : velocity.x = 0;
             inGamePositionDimension.x += (velocity.x * frameDelta * !xAxisWillCollide);
             inGamePositionDimension.y += (velocity.y * frameDelta * !yAxisWillCollide);
@@ -421,7 +421,7 @@ namespace platformer
         bool isInConsole;
         bool fpsIsVisible{0};
         int indexToEdit {0};
-        int parseArguments(std::string &filename)
+        int parseArguments(std::string &filename, bool & fullscreen)
         {
             arguments.clear();
             std::string buffer;
@@ -444,6 +444,11 @@ namespace platformer
                         filename = arguments.at(1);
                         return -1;
                     }
+                }
+                if (arguments.at(0) == "/fullscreen")
+                {
+                    ToggleFullscreen();
+                    fullscreen = !fullscreen;
                 }
                 if (arguments.at(0) == "/generate" && arguments.size() > 2)
                 {
@@ -480,7 +485,7 @@ namespace platformer
         }
 
     public:
-        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string &filename)
+        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string &filename, bool & fullscreen)
         {
             int returnVal = 0;
             if (fpsIsVisible)
@@ -494,16 +499,10 @@ namespace platformer
                     sum += frameTimes[indexToEdit];
                 }
                 float mean = sum / 100.0f;
-                // TO DO: Make toggleable
-                /*
-                float variance {0};
-                for (int i = 0; i < 100; i++)
+                for (int i = 0; i < 50; i++)
                 {
-                    variance += pow((frameTimes[i] - mean), 2);
+                    DrawLine(i, ((frameTimes[i] / mean) * 10 ) + windowResolution.y / 2, i + 1, ((frameTimes[i + 1] / mean) * 10) + windowResolution.y / 2, YELLOW);
                 }
-                variance /= 100.0f;
-                float stdv = sqrt(variance);
-                */
                 DrawText(TextFormat("FPS: %d", (int)(1.0f/mean)), positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y, 0.01f * hypotenuse, YELLOW);
                 //DrawText(TextFormat("stddvn: %f", stdv), positionToDrawFPS.x * windowResolution.x, (0.1f + positionToDrawFPS.y) * windowResolution.y, 0.01f * hypotenuse, YELLOW);
             }
@@ -519,7 +518,7 @@ namespace platformer
                 }
                 if (IsKeyPressed(KEY_ENTER))
                 {
-                    returnVal = parseArguments(filename);
+                    returnVal = parseArguments(filename, fullscreen);
                     toggleConsole();
                     cin.clear();
                 }
