@@ -7,11 +7,11 @@ namespace platformer
     {
         namespace editor
         {
-            stationaryStaticBlock grass; // 1
-            stationaryStaticBlock dirt;  // 2
-            stationaryStaticBlock brick; // 3
-            stationaryStaticBlock laser; // 4
-            stationaryStaticBlock lava;  // 5
+            stationaryStaticBlock grass;       // 1
+            stationaryStaticBlock dirt;        // 2
+            stationaryStaticBlock brick;       // 3
+            stationaryStaticBlock laser;       // 4
+            stationaryStaticBlock lava;        // 5
             stationaryStaticBlock playerSpawn; // 6
             // Returns the char which corresponds to a type
             char typeToChar(int type)
@@ -47,7 +47,7 @@ namespace platformer
                 types.push_back(&lava);
                 types.push_back(&playerSpawn);
             }
-            bool clickCheck(Vector2 & mousePos, stationaryStaticBlock * subject)
+            bool clickCheck(Vector2 &mousePos, stationaryStaticBlock *subject)
             {
                 if (CheckCollisionPointRec(mousePos, subject->getRectangle()) && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
                 {
@@ -60,15 +60,15 @@ namespace platformer
             }
             class animatedText
             {
-                protected:
+            protected:
                 std::string content;
                 float timeToLive;
                 double creationTime;
                 Vector2 destination;
-                public:
+
+            public:
                 animatedText()
                 {
-
                 }
                 // Sets the destination coordinates
                 void setDestination(float x, float y)
@@ -77,7 +77,7 @@ namespace platformer
                     destination.y = y;
                 }
                 // Sets the string contents
-                void setContent(const char * cnt)
+                void setContent(const char *cnt)
                 {
                     content = cnt;
                 }
@@ -87,7 +87,7 @@ namespace platformer
                     creationTime = timeOfBirth;
                     timeToLive = ttl;
                 }
-                void draw(float & c, double time, float fontsize, Vector2 & resolution)
+                void draw(float &c, double time, float fontsize, Vector2 &resolution)
                 {
                     if ((creationTime + timeToLive) > time)
                     {
@@ -95,13 +95,14 @@ namespace platformer
                     }
                 }
             };
-            
+
         }
     }
 }
 
 int main()
 {
+    srand(time(nullptr));
     platformer::blocks::editor::init();
     platformer::stationaryStaticBlock selectedBlock = platformer::blocks::editor::brick;
     platformer::blocks::editor::animatedText animatedText;
@@ -112,6 +113,8 @@ int main()
     float hypotenuse = std::sqrt((resolution.x * resolution.x) + (resolution.y * resolution.y));
     InitWindow(resolution.x, resolution.y, "Level Editor");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
+    int refreshRate = GetMonitorRefreshRate(GetCurrentMonitor());
+    SetTargetFPS(refreshRate);
     Texture2D spritesheet = LoadTexture("assets/tilesheet.png");
     Camera2D viewPort;
     viewPort.offset = {resolution.x / 2, resolution.y / 2};
@@ -119,7 +122,7 @@ int main()
     viewPort.zoom = 0.1f;
     viewPort.rotation = 0;
     bool workerStatus{1};
-    bool isInConsole {0};
+    bool isInConsole{0};
     double time;
     std::string consoleBuffer;
     while (!WindowShouldClose())
@@ -147,7 +150,7 @@ int main()
         // Draw square over cursor
         DrawRectangle(snappingMousePosition.x, snappingMousePosition.y, 64, 64, BLUE);
         // Draw the coordinates of the mouse cursor
-        const char * mousePos = TextFormat("%d, %d", (int) snappingMousePosition.x, (int) snappingMousePosition.y);
+        const char *mousePos = TextFormat("%d, %d", (int)snappingMousePosition.x, (int)snappingMousePosition.y);
         DrawText(mousePos, (snappingMousePosition.x - MeasureText(mousePos, 64) / 2), snappingMousePosition.y + 80, 64, YELLOW);
 
         EndMode2D();
@@ -156,14 +159,14 @@ int main()
         // Draw all selectable blocks
         for (int i = 0; i < platformer::blocks::editor::types.size(); i++)
         {
-            int k = ((int) i / 5);
+            int k = ((int)i / 5);
             platformer::blocks::editor::types.at(i)->setPosition((resolution.x * 0.015f) + ((i % 5) * resolution.x * 0.015f), (resolution.y * 0.1f * (k + 1)));
             platformer::blocks::editor::types.at(i)->setDimentions(0.01f * hypotenuse, 0.01f * hypotenuse);
             platformer::blocks::editor::types.at(i)->draw(spritesheet);
         }
         // Draw text
-        const char * descriptor = TextFormat("Choose a block");
-        DrawText(descriptor, 0.01f * resolution.x, resolution.y * 0.07f, 0.01f * hypotenuse, YELLOW);
+        const char *descriptor = TextFormat("Blocks");
+        DrawText(descriptor, (0.05f * resolution.x) - MeasureText(descriptor, (0.005f * hypotenuse)), resolution.y * 0.07f, 0.01f * hypotenuse, YELLOW);
         if (isInConsole)
         {
             DrawText(consoleBuffer.c_str(), resolution.x * 0.1f, resolution.y * 0.8f, hypotenuse * 0.01f, YELLOW);
@@ -245,10 +248,9 @@ int main()
                     animatedText.setDestination(0.1f, 0.7f);
                     animatedText.revive(time, 3);
                 }
-                
             }
         }
-        for (size_t i = 0; i < platformer::blocks::editor::types.size() ; i++)
+        for (size_t i = 0; i < platformer::blocks::editor::types.size(); i++)
         {
             if (platformer::blocks::editor::clickCheck(mousePosition, platformer::blocks::editor::types.at(i)))
             {
@@ -310,19 +312,18 @@ int main()
                         size_t xtotalNeededToAllocate = 1 + (((std::abs(xmin - xmax))) / 64);
                         size_t ytotalNeededToAllocate = 1 + (((std::abs(ymin - ymax))) / 64);
                         size_t total = (xtotalNeededToAllocate * ytotalNeededToAllocate);
-                        std::sort(blocks.begin(), blocks.end(), [](platformer::stationaryStaticBlock& lhs, platformer::stationaryStaticBlock& rhs) {
-                            return (lhs.getPosition().y < rhs.getPosition().y) || ((lhs.getPosition().y  == rhs.getPosition().y) && (lhs.getPosition().x < rhs.getPosition().x));
-                        });
+                        std::sort(blocks.begin(), blocks.end(), [](platformer::stationaryStaticBlock &lhs, platformer::stationaryStaticBlock &rhs)
+                                  { return (lhs.getPosition().y < rhs.getPosition().y) || ((lhs.getPosition().y == rhs.getPosition().y) && (lhs.getPosition().x < rhs.getPosition().x)); });
                         std::string buf;
                         for (long int y = 0; y < ytotalNeededToAllocate; y++)
                         {
                             for (long int z = 0; z < xtotalNeededToAllocate; z++)
                             {
-                                char blockFound {'.'};
+                                char blockFound{'.'};
                                 for (long int k = 0; k < blocks.size(); k++)
                                 {
                                     Vector2 cache = blocks.at(k).getPosition();
-                                    
+
                                     if (cache.x == (xmin + (z * 64)) && cache.y == (ymin + (y * 64)))
                                     {
                                         blockFound = platformer::blocks::editor::typeToChar(blocks.at(k).getType());
@@ -353,25 +354,78 @@ int main()
                         animatedText.setDestination(0.1f, 0.7f);
                         animatedText.revive(time, 3);
                     }
+                    else if (realBuffers.at(0) == "/load")
+                    {
+                        realBuffers.at(1) = "levels/" + realBuffers.at(1);
+                        char *readme = LoadFileText(realBuffers.at(1).c_str());
+                        int width;
+                        // Get the width
+                        for (width = 0; readme[width] != '\n' && readme[width] != '\0'; width++)
+                        {
+                        }
+                        int x = 0;
+                        int y = 0;
+                        blocks.clear();
+                        for (size_t i = 0; readme[i] != '\0'; i++)
+                        {
+                            switch (readme[i])
+                            {
+                            case ('.'):
+                                x++;
+                                break;
+                            case ('\n'):
+                                y++;
+                                x = 0;
+                                break;
+                            case ('M'):
+                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::lava, 64 * x, 9024 + (64 * y), 64, 64));
+                                x++;
+                                break;
+                            case ('L'):
+                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::laser, 64 * x, 9024 + (64 * y), 64, 64));
+                                x++;
+                                break;
+                            case ('B'):
+                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::brick, 64 * x, 9024 + (64 * y), 64, 64));
+                                x++;
+                                break;
+                            case ('D'):
+                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::dirt, 64 * x, 9024 + (64 * y), 64, 64));
+                                x++;
+                                break;
+                            case ('G'):
+                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::grass, 64 * x, 9024 + (64 * y), 64, 64));
+                                x++;
+                                break;
+                            case ('S'):
+                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::playerSpawn, 64 * x, 9024 + (64 * y), 64, 64));
+                                blocks.at(blocks.size() - 1).setPosition(64 * x, 9024 + (64 * y));
+                                x++;
+                                break;
+                            default:
+                                x++;
+                                break;
+                            }
+                        }
+                        UnloadFileText(readme);
+                        viewPort.target = (blocks.at(rand() % blocks.size())).getPosition();
+                    }
                     else
                     {
-                        throw std::invalid_argument("Invalid command");
+                        throw std::invalid_argument("Invalid command or syntax");
                     }
-
                 }
-                catch(const std::exception& e)
+                catch (const std::exception &e)
                 {
                     animatedText.setContent(e.what());
                     animatedText.setDestination(0.1f, 0.7f);
                     animatedText.revive(time, 3);
                 }
-                
             }
             else if (response != 0 && response != '\0')
             {
                 consoleBuffer += (response % 255);
             }
-            
         }
     }
     workerStatus = 0;
