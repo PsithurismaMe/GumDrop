@@ -5,6 +5,6 @@ namespace platformer
 {
     namespace settings
     {
-        std::array<int, 3> activeKeypresses;
+        std::vector<int> activeKeypresses(5, 0);
     }
 }

@@ -6,6 +6,7 @@ int main(int argc, char **argv)
     srand(time(nullptr));
     bool isRunning{1};
     bool fullscreen {0};
+    Color background;
     Vector2 resolution = {800, 400};
     // Specify the level to load upon startup
     std::string filename = "myLevel.lvl";
@@ -31,7 +32,7 @@ int main(int argc, char **argv)
         SetExitKey(-1);
         // Load the level and store any blocks in the vectors above
         std::string temporaryFileName = "levels/" + filename;
-        platformer::blocks::loadFromFile(temporaryFileName.c_str(), staticBlocks, animatedBlocks);
+        platformer::blocks::loadFromFile(temporaryFileName.c_str(), staticBlocks, animatedBlocks, background);
         // Allow the window manager to handle resizing
         SetWindowState(FLAG_WINDOW_RESIZABLE);
         if (fullscreen)
@@ -90,7 +91,7 @@ int main(int argc, char **argv)
             platformer::blocks::inGameCamera.offset = {resolution.x / 2, resolution.y / 2};
             platformer::blocks::inGameCamera.target = player.getPosition();
             BeginDrawing();
-            ClearBackground(BLACK);
+            ClearBackground(background);
             if (isPaused)
             {
                 platformer::ui::alternateRenderer(mousePosition, resolution, isPaused, isRunning, spritesheet, hypotenuse);
@@ -139,9 +140,11 @@ int main(int argc, char **argv)
             {
                 isPaused = !isPaused;
             }
+            //std::cout << GetGamepadButtonPressed() << '\n';
             platformer::settings::activeKeypresses[0] = (IsKeyDown(KEY_D) xor (GetGamepadAxisMovement(0, 0) > 0));
             platformer::settings::activeKeypresses[1] = (IsKeyDown(KEY_A) xor (GetGamepadAxisMovement(0, 0) < 0));
             platformer::settings::activeKeypresses[2] = (IsKeyDown(KEY_SPACE) xor IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN));
+            platformer::settings::activeKeypresses[3] = (IsKeyDown(KEY_MINUS) xor IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN));
         }
         workerStatus = 0;
         every100ms.join();

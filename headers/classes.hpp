@@ -239,7 +239,9 @@ namespace platformer
         Vector2 initialPosition;
         Vector2 terminalVelocity{256.0f, 512.0f};
         Vector2 dragCoefficent{100.0f, 128.0f};
+        Vector2 checkpoint;
         bool canJump{1};
+        bool canFastFall {0};
         int isMoving{0};
         Vector2 playerDesiredMovement;
 
@@ -373,8 +375,8 @@ namespace platformer
                     deadlyWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 64, cache.y + 19, (float)animatedBlocks.at(i)->getRayLength(), 28});
                     if (deadlyWillCollide)
                     {
-                        inGamePositionDimension.x = initialPosition.x;
-                        inGamePositionDimension.y = initialPosition.y;
+                        inGamePositionDimension.x = checkpoint.x;
+                        inGamePositionDimension.y = checkpoint.y;
                         break;
                     }
                 }
@@ -383,8 +385,8 @@ namespace platformer
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
                     if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4 , cache.width - 8, cache.height - 8}))
                     {
-                        inGamePositionDimension.x = initialPosition.x;
-                        inGamePositionDimension.y = initialPosition.y;
+                        inGamePositionDimension.x = checkpoint.x;
+                        inGamePositionDimension.y = checkpoint.y;
                         break;
                     }
                 }
@@ -402,12 +404,34 @@ namespace platformer
             {
                 playerDesiredMovement.y -= 300;
                 canJump = 0;
+                canFastFall = 1;
             }
+        }
+        void fastFall(float intensity)
+        {
+            if (canFastFall)
+            {
+                canFastFall = 0;
+                playerDesiredMovement.y += intensity;
+            }
+        }
+        bool getJumpStatus()
+        {
+            return canJump;
+        }
+        bool getFastFallStatus()
+        {
+            return canFastFall;
         }
         void setInitialSpawnPosition(int x, int y)
         {
             initialPosition.x = x;
             initialPosition.y = y;
+        }
+        void setCheckpoint(int x, int y)
+        {
+            checkpoint.x = x;
+            checkpoint.y = y;
         }
     };
     class console
@@ -458,6 +482,7 @@ namespace platformer
                     std::string thingToOutput;
                     std::string fileOut = "levels/";
                     char blocks[] = ".LMBDG";
+                    thingToOutput += "0 0 0 255\n";
                     for (int k = 0; k < y; k++)
                     {
                         for (int a = 0; a < x; a++)

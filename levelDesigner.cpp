@@ -110,6 +110,7 @@ int main()
     Vector2 resolution = {800, 400};
     Vector2 mousePosition;
     Vector2 snappingMousePosition;
+    Color background{0, 0, 0, 255};
     float hypotenuse = std::sqrt((resolution.x * resolution.x) + (resolution.y * resolution.y));
     InitWindow(resolution.x, resolution.y, "Level Editor");
     SetWindowState(FLAG_WINDOW_RESIZABLE);
@@ -123,6 +124,7 @@ int main()
     viewPort.rotation = 0;
     bool workerStatus{1};
     bool isInConsole{0};
+    bool drawLaserBeams {0};
     double time;
     std::string consoleBuffer;
     while (!WindowShouldClose())
@@ -139,7 +141,7 @@ int main()
         hypotenuse = std::sqrt((resolution.x * resolution.x) + (resolution.y * resolution.y));
         viewPort.offset = {resolution.x / 2, resolution.y / 2};
         BeginDrawing();
-        ClearBackground(BLACK);
+        ClearBackground(background);
         BeginMode2D(viewPort);
         for (size_t i = 0; i < blocks.size(); i++)
         {
@@ -152,6 +154,17 @@ int main()
         // Draw the coordinates of the mouse cursor
         const char *mousePos = TextFormat("%d, %d", (int)snappingMousePosition.x, (int)snappingMousePosition.y);
         DrawText(mousePos, (snappingMousePosition.x - MeasureText(mousePos, 64) / 2), snappingMousePosition.y + 80, 64, YELLOW);
+        if (drawLaserBeams)
+        {
+            for (size_t i = 0; i < blocks.size(); i++)
+            {
+                if (blocks.at(i).getType() == 4)
+                {
+                    Vector2 source = blocks.at(i).getPosition();
+                    DrawRectangle(source.x + 64, source.y + 19, 4000, 28, {0, 255, 0, 255});
+                }
+            }
+        }
 
         EndMode2D();
         // Draw toolbox background
@@ -315,6 +328,7 @@ int main()
                         std::sort(blocks.begin(), blocks.end(), [](platformer::stationaryStaticBlock &lhs, platformer::stationaryStaticBlock &rhs)
                                   { return (lhs.getPosition().y < rhs.getPosition().y) || ((lhs.getPosition().y == rhs.getPosition().y) && (lhs.getPosition().x < rhs.getPosition().x)); });
                         std::string buf;
+                        buf += std::to_string(background.r) + ' ' + std::to_string(background.g) + ' ' + std::to_string(background.b) + ' ' + std::to_string(background.a) + '\n';
                         for (long int y = 0; y < ytotalNeededToAllocate; y++)
                         {
                             for (long int z = 0; z < xtotalNeededToAllocate; z++)
@@ -348,6 +362,12 @@ int main()
                             animatedText.revive(time, 3);
                         }
                     }
+                    else if (realBuffers.at(0) == "/set" && realBuffers.at(1) == "background" && realBuffers.size() == 5)
+                    {
+                        background.r = (std::stoi(realBuffers.at(2)) % 256);
+                        background.g = (std::stoi(realBuffers.at(3)) % 256);
+                        background.b = (std::stoi(realBuffers.at(4)) % 256);
+                    }
                     else if (realBuffers.at(0) == "/help")
                     {
                         animatedText.setContent("See docs/usage.txt for commands");
@@ -358,6 +378,11 @@ int main()
                     {
                         realBuffers.at(1) = "levels/" + realBuffers.at(1);
                         char *readme = LoadFileText(realBuffers.at(1).c_str());
+                        if (readme == nullptr)
+                        {
+                            throw std::invalid_argument("Level does not exist!");
+                            continue;
+                        }
                         int width;
                         // Get the width
                         for (width = 0; readme[width] != '\n' && readme[width] != '\0'; width++)
@@ -365,8 +390,37 @@ int main()
                         }
                         int x = 0;
                         int y = 0;
+                        size_t i = 0;
                         blocks.clear();
-                        for (size_t i = 0; readme[i] != '\0'; i++)
+                        {
+                            std::string buffer;
+                            std::vector<std::string> buffers;
+                            while (readme[i] != '\n' && readme[i] != '\0')
+                            {
+                                buffer += readme[i];
+                                i++;
+                            }
+                            std::stringstream realBuffer(buffer);
+                            while (std::getline(realBuffer, buffer, ' '))
+                            {
+                                buffers.push_back(buffer);
+                            }
+                            if (buffers.size() != 4)
+                            {
+                                UnloadFileText(readme);
+                                throw std::invalid_argument("Malformed level file. Unable to load.");
+                                continue;
+                            }
+                            else
+                            {
+                                background.r = std::stoi(buffers.at(0));
+                                background.g = std::stoi(buffers.at(1));
+                                background.b = std::stoi(buffers.at(2));
+                                background.a = std::stoi(buffers.at(3));
+                            }
+                        }
+                        i++;
+                        for (; readme[i] != '\0'; i++)
                         {
                             switch (readme[i])
                             {
@@ -409,6 +463,10 @@ int main()
                         }
                         UnloadFileText(readme);
                         viewPort.target = (blocks.at(rand() % blocks.size())).getPosition();
+                    }
+                    else if (realBuffers.at(0) == "/showlasers")
+                    {
+                        drawLaserBeams = !drawLaserBeams;
                     }
                     else
                     {

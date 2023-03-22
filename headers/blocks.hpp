@@ -50,7 +50,7 @@ namespace platformer
                 std::this_thread::sleep_for(std::chrono::milliseconds(ms));
             }
         }
-        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> & staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> & animatedBlocks, player & pplayer,bool & workerStatus, std::array<int, 3> & activeKeypresses)
+        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> & staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> & animatedBlocks, player & pplayer,bool & workerStatus, std::vector<int> & activeKeypresses)
         {
             while (workerStatus)
             {
@@ -72,6 +72,11 @@ namespace platformer
                 {
                     pplayer.jump();
                 }
+                if (activeKeypresses[3])
+                {
+                    activeKeypresses[3] = 0;
+                    pplayer.setCheckpoint(pplayer.getPosition().x, pplayer.getPosition().y);
+                }
                 if (std::chrono::system_clock::now() < estimatedCompletionTime)
                 {
                     std::this_thread::sleep_until(estimatedCompletionTime);
@@ -92,7 +97,7 @@ namespace platformer
                 }
             }
         }
-        void loadFromFile(const char *filename, std::vector<platformer::stationaryStaticBlock *> &dest, std::vector<platformer::stationaryAnimatedBlock *> &aDest)
+        void loadFromFile(const char *filename, std::vector<platformer::stationaryStaticBlock *> &dest, std::vector<platformer::stationaryAnimatedBlock *> &aDest, Color & backgroundColor)
         {
             if (FileExists(filename))
             {
@@ -104,9 +109,38 @@ namespace platformer
                 }
                 int x = 0;
                 int y = 0;
+                size_t i = 0;
                 dest.clear();
                 aDest.clear();
-                for (size_t i = 0; readme[i] != '\0'; i++)
+                {
+                    std::string buffer;
+                    std::vector<std::string> buffers;
+                    while (readme[i] != '\n' && readme[i] != '\0')
+                    {
+                        buffer += readme[i];
+                        i++;
+                    }
+                    std::stringstream realBuffer(buffer);
+                    while (std::getline(realBuffer, buffer, ' '))
+                    {
+                        buffers.push_back(buffer);
+                    }
+                    if (buffers.size() != 4)
+                    {
+                        std::cerr << "Malformed level file. Unable to load." << '\n';
+                        UnloadFileText(readme);
+                        return;
+                    }
+                    else
+                    {
+                        backgroundColor.r = std::stoi(buffers.at(0));
+                        backgroundColor.g = std::stoi(buffers.at(1));
+                        backgroundColor.b = std::stoi(buffers.at(2));
+                        backgroundColor.a = std::stoi(buffers.at(3));
+                    }
+                }
+                i++;
+                for (; readme[i] != '\0'; i++)
                 {
                     switch (readme[i])
                     {
@@ -140,6 +174,7 @@ namespace platformer
                     case ('S'):
                         templatePlayer.setPosition(64 * x, 64 * y);
                         templatePlayer.setInitialSpawnPosition(64 * x, 64 * y);
+                        templatePlayer.setCheckpoint(64 * x, 64 * y);
                         x++;
                         break;
                     default:
