@@ -392,7 +392,7 @@ namespace platformer
                 }
             }
             canJump = yAxisWillCollide;
-            std::abs(velocity.x) > 0.3f ? velocity.x = velocity.x : velocity.x = 0;
+            std::abs(velocity.x) > 1.7f ? velocity.x = velocity.x : velocity.x = 0;
             inGamePositionDimension.x += (velocity.x * frameDelta * !xAxisWillCollide);
             inGamePositionDimension.y += (velocity.y * frameDelta * !yAxisWillCollide);
             velocity.x = velocity.x * !xAxisWillCollide;

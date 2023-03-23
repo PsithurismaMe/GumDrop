@@ -132,7 +132,7 @@ int main(int argc, char **argv)
             {
                 break;
             }
-            EndDrawing();
+               EndDrawing();
             keypress = GetCharPressed();
             if (IsKeyPressed(KEY_SLASH))
             {
