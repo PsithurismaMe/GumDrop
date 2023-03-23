@@ -51,6 +51,7 @@ namespace platformer
             editorBlock laser;       // 4
             editorBlock lava;        // 5
             editorBlock playerSpawn; // 6
+            editorBlock toggleLaserVisibility; // 7
             // Returns the char which corresponds to a type
             char typeToChar(int type)
             {
@@ -66,28 +67,32 @@ namespace platformer
                 laser.setPositionOnSpriteSheet({0, 1792, 64, 64});
                 lava.setPositionOnSpriteSheet({0, 1856, 64, 64});
                 playerSpawn.setPositionOnSpriteSheet({0, 1984, 64, 64});
+                toggleLaserVisibility.setPositionOnSpriteSheet({64, 1728, 64, 64});
                 grass.setGroupNumber(-1);
                 dirt.setGroupNumber(-1);
                 brick.setGroupNumber(-1);
                 laser.setGroupNumber(-1);
                 lava.setGroupNumber(-1);
                 playerSpawn.setGroupNumber(-1);
+                toggleLaserVisibility.setGroupNumber(-1);
                 grass.setType(1);
                 dirt.setType(2);
                 brick.setType(3);
                 laser.setType(4);
                 lava.setType(5);
                 playerSpawn.setType(6);
+                toggleLaserVisibility.setType(7);
                 types.push_back(&grass);
                 types.push_back(&dirt);
                 types.push_back(&brick);
                 types.push_back(&laser);
                 types.push_back(&lava);
                 types.push_back(&playerSpawn);
+                types.push_back(&toggleLaserVisibility);
             }
             bool clickCheck(Vector2 &mousePos, editorBlock *subject)
             {
-                if (CheckCollisionPointRec(mousePos, subject->getRectangle()) && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+                if (CheckCollisionPointRec(mousePos, subject->getRectangle()) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
                 {
                     return true;
                 }
@@ -339,7 +344,15 @@ int main()
         {
             if (platformer::blocks::editor::clickCheck(mousePosition, platformer::blocks::editor::types.at(i)))
             {
-                selectedBlock = *(platformer::blocks::editor::types.at(i));
+                if (platformer::blocks::editor::types.at(i)->getType() != 7)
+                {
+                    selectedBlock = *(platformer::blocks::editor::types.at(i));
+                }
+                else
+                {
+                    drawLaserBeams = !drawLaserBeams;
+                    drawLaserBeams == 1 ? platformer::blocks::editor::types.at(i)->setPositionOnSpriteSheet({0, 1728, 64, 64}) : platformer::blocks::editor::types.at(i)->setPositionOnSpriteSheet({64, 1728, 64, 64});
+                }
                 break;
             }
         }
@@ -557,6 +570,7 @@ int main()
                     else if (realBuffers.at(0) == "/showlasers")
                     {
                         drawLaserBeams = !drawLaserBeams;
+                        drawLaserBeams == 1 ? platformer::blocks::editor::types.at(6)->setPositionOnSpriteSheet({0, 1728, 64, 64}) : platformer::blocks::editor::types.at(6)->setPositionOnSpriteSheet({64, 1728, 64, 64});
                     }
                     else
                     {

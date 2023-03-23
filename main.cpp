@@ -41,6 +41,8 @@ int main(int argc, char **argv)
         }
         // Load textures
         Texture2D spritesheet = LoadTexture("assets/tilesheet.png");
+        Image windowIcon = LoadImage("assets/icon.png");
+        SetWindowIcon(windowIcon);
         Vector2 mousePosition {0, 0};
         float hypotenuse {1.0f};
         float tickRate {1.0f/60.0f};
@@ -167,6 +169,7 @@ int main(int argc, char **argv)
         staticBlocks.clear();
         animatedBlocks.clear();
         UnloadTexture(spritesheet);
+        UnloadImage(windowIcon);
         CloseWindow();
     }
 }

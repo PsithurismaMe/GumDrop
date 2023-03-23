@@ -55,7 +55,7 @@ If you want to compile this on Windows, Have fun.
 | Place block | Left Click |
 | Destroy block | Right Click |
 | Choose block | Click the desired block on the left menu * |
-| Show laser beams | `/showlasers` |
+| Show laser beams * | `/showlasers` |
 | Save level * | `/saveas <level name>` |
 | Load level * | `/load <level name>` |
 | Set level background color * | `/set background <r> <g> <b>` |
@@ -64,6 +64,7 @@ If you want to compile this on Windows, Have fun.
 
 \* The editor does not prevent you from setting a negative zoom. Blocks may not be placed in their expected location if in a negative zoom. <br>
 \* Full filename is expected. Will be saved into `/levels/` <br>
+\* You can also toggle laser beam visibility by clicking the green rectangle in the blocks menu <br>
 \* Full filename is expected. Level must be in `/levels/` <br>
 \* The values of RGB are 0-255 <br>
 \* Framerate is capped to monitor refresh rate by default. The value of number sets the MAX framerate.
