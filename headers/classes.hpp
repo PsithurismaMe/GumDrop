@@ -533,9 +533,9 @@ namespace platformer
             }
             if (isInConsole)
             {
-                if (keypress != 0)
+                if (keypress != 0 && keypress >= 32 && keypress <= 122)
                 {
-                    cin += (keypress % 255);
+                    cin += keypress;
                 }
                 if (IsKeyPressed(KEY_BACKSPACE) && cin.size() > 0)
                 {

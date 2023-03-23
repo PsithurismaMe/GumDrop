@@ -107,7 +107,7 @@ int main()
     platformer::stationaryStaticBlock selectedBlock = platformer::blocks::editor::brick;
     platformer::blocks::editor::animatedText animatedText;
     std::vector<platformer::stationaryStaticBlock> blocks;
-    Vector2 resolution = {800, 400};
+    Vector2 resolution {800, 400};
     Vector2 mousePosition;
     Vector2 snappingMousePosition;
     Color background{0, 0, 0, 255};
@@ -234,7 +234,22 @@ int main()
                                     It swaps the element at the last index in the vector, and the element at the index to remove. From then you can pop off the last element, deleting it.
                         */
                         platformer::stationaryStaticBlock *cache1 = new platformer::stationaryStaticBlock;
+                        if (cache1 == nullptr)
+                        {
+                            animatedText.setContent("Failed to allocate memory");
+                            animatedText.setDestination(0.1f, 0.7f);
+                            animatedText.revive(time, 3);
+                            continue;
+                        }
                         platformer::stationaryStaticBlock *cache2 = new platformer::stationaryStaticBlock;
+                        if (cache2 == nullptr)
+                        {
+                            delete cache1;
+                            animatedText.setContent("Failed to allocate memory");
+                            animatedText.setDestination(0.1f, 0.7f);
+                            animatedText.revive(time, 3);
+                            continue;
+                        }
                         *cache1 = blocks.at(blocks.size() - 1);
                         *cache2 = blocks.at(i);
                         blocks.at(i) = *cache1;
@@ -480,9 +495,9 @@ int main()
                     animatedText.revive(time, 3);
                 }
             }
-            else if (response != 0 && response != '\0')
+            else if (response != 0 && response != '\0' && response >= 32 && response <= 122)
             {
-                consoleBuffer += (response % 255);
+                consoleBuffer += response;
             }
         }
     }

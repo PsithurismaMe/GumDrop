@@ -41,9 +41,8 @@ int main(int argc, char **argv)
         }
         // Load textures
         Texture2D spritesheet = LoadTexture("assets/tilesheet.png");
-        
-        Vector2 mousePosition;
-        float hypotenuse;
+        Vector2 mousePosition {0, 0};
+        float hypotenuse {1.0f};
         // These variables are used for animation
         size_t globalIterables[2] = {0, 0};
         bool workerStatus{1};
