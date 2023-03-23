@@ -6,7 +6,7 @@
 - [ ] Add functional NPCs
 - [ ] Make an emission map for light emitting blocks
 - [X] Untie user inputs from framerate
-- [ ] Serialize background color and/or Background image
+- [X] Serialize background color and/or Background image
 - [ ] Write a storyline for the game
 - [ ] Create levels that are appropriate for the storyline
 - [X] Reimplement collision checking

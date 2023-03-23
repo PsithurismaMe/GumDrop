@@ -3,23 +3,61 @@
 
 namespace platformer
 {
+    class editorBlock : public stationaryStaticBlock
+    {
+        int rayDistance {4000};
+        public:
+        int getRayLength()
+        {
+            return rayDistance;
+        }
+        editorBlock()
+        {
+
+        }
+        editorBlock(editorBlock &whereToInherit, int globalx, int globaly, int wid, int hgt)
+        {
+            (*this) = whereToInherit;
+            inGamePositionDimension.x = globalx;
+            inGamePositionDimension.y = globaly;
+            inGamePositionDimension.width = wid;
+            inGamePositionDimension.height = hgt;
+        }
+        void computeRay(std::vector<editorBlock> & obstecules)
+        {
+            int lowest {4000};
+            for (size_t i = 0; i < obstecules.size(); i++)
+            {
+                Vector2 cache = obstecules.at(i).getPosition();
+                if (&obstecules.at(i) != this && cache.y == inGamePositionDimension.y && cache.x > inGamePositionDimension.x)
+                {
+                    int a = std::abs(cache.x - inGamePositionDimension.x);
+                    if (a < lowest)
+                    {
+                        lowest = a;
+                    }
+                }
+            }
+            rayDistance = lowest - 64;
+        }
+    };
     namespace blocks
     {
         namespace editor
         {
-            stationaryStaticBlock grass;       // 1
-            stationaryStaticBlock dirt;        // 2
-            stationaryStaticBlock brick;       // 3
-            stationaryStaticBlock laser;       // 4
-            stationaryStaticBlock lava;        // 5
-            stationaryStaticBlock playerSpawn; // 6
+            editorBlock grass;       // 1
+            editorBlock dirt;        // 2
+            editorBlock brick;       // 3
+            editorBlock laser;       // 4
+            editorBlock lava;        // 5
+            editorBlock playerSpawn; // 6
             // Returns the char which corresponds to a type
             char typeToChar(int type)
             {
                 char types[] = {'G', 'D', 'B', 'L', 'M', 'S'};
                 return types[type - 1];
             }
-            std::vector<stationaryStaticBlock *> types;
+            std::vector<editorBlock *> types;
             void init()
             {
                 grass.setPositionOnSpriteSheet({0, 0, 64, 64});
@@ -47,7 +85,7 @@ namespace platformer
                 types.push_back(&lava);
                 types.push_back(&playerSpawn);
             }
-            bool clickCheck(Vector2 &mousePos, stationaryStaticBlock *subject)
+            bool clickCheck(Vector2 &mousePos, editorBlock *subject)
             {
                 if (CheckCollisionPointRec(mousePos, subject->getRectangle()) && IsMouseButtonDown(MOUSE_BUTTON_LEFT))
                 {
@@ -104,9 +142,9 @@ int main()
 {
     srand(time(nullptr));
     platformer::blocks::editor::init();
-    platformer::stationaryStaticBlock selectedBlock = platformer::blocks::editor::brick;
+    platformer::editorBlock selectedBlock = platformer::blocks::editor::brick;
     platformer::blocks::editor::animatedText animatedText;
-    std::vector<platformer::stationaryStaticBlock> blocks;
+    std::vector<platformer::editorBlock> blocks;
     Vector2 resolution {800, 400};
     Vector2 mousePosition;
     Vector2 snappingMousePosition;
@@ -125,6 +163,7 @@ int main()
     bool workerStatus{1};
     bool isInConsole{0};
     bool drawLaserBeams {0};
+    bool showFPS {0};
     double time;
     std::string consoleBuffer;
     while (!WindowShouldClose())
@@ -161,7 +200,7 @@ int main()
                 if (blocks.at(i).getType() == 4)
                 {
                     Vector2 source = blocks.at(i).getPosition();
-                    DrawRectangle(source.x + 64, source.y + 19, 4000, 28, {0, 255, 0, 255});
+                    DrawRectangle(source.x + 64, source.y + 19, blocks.at(i).getRayLength(), 28, {0, 255, 0, 255});
                 }
             }
         }
@@ -185,6 +224,10 @@ int main()
             DrawText(consoleBuffer.c_str(), resolution.x * 0.1f, resolution.y * 0.8f, hypotenuse * 0.01f, YELLOW);
         }
         animatedText.draw(hypotenuse, time, 0.01f, resolution);
+        if (showFPS)
+        {
+            DrawFPS(resolution.x * 0.8f, resolution.y * 0.1f);
+        }
         EndDrawing();
         viewPort.zoom += (GetMouseWheelMove() / 100.0f);
         // Input handling
@@ -216,8 +259,15 @@ int main()
                 }
                 if (!duplicateFound)
                 {
-                    blocks.push_back(platformer::stationaryStaticBlock(selectedBlock, snappingMousePosition.x, snappingMousePosition.y, 64, 64));
+                    blocks.push_back(platformer::editorBlock(selectedBlock, snappingMousePosition.x, snappingMousePosition.y, 64, 64));
                     blocks.at(blocks.size() - 1).setVisibility(1);
+                    for (size_t i = 0; i < blocks.size(); i++)
+                    {
+                        if (blocks.at(i).getType() == 4)
+                        {
+                            blocks.at(i).computeRay(blocks);
+                        }
+                    }
                 }
             }
         }
@@ -233,7 +283,7 @@ int main()
                                     Since std::vector doesn't have a method for removing elements at an arbitrary index, i have to use this mess.
                                     It swaps the element at the last index in the vector, and the element at the index to remove. From then you can pop off the last element, deleting it.
                         */
-                        platformer::stationaryStaticBlock *cache1 = new platformer::stationaryStaticBlock;
+                        platformer::editorBlock *cache1 = new platformer::editorBlock;
                         if (cache1 == nullptr)
                         {
                             animatedText.setContent("Failed to allocate memory");
@@ -241,7 +291,7 @@ int main()
                             animatedText.revive(time, 3);
                             continue;
                         }
-                        platformer::stationaryStaticBlock *cache2 = new platformer::stationaryStaticBlock;
+                        platformer::editorBlock *cache2 = new platformer::editorBlock;
                         if (cache2 == nullptr)
                         {
                             delete cache1;
@@ -256,6 +306,13 @@ int main()
                         blocks.pop_back();
                         delete cache1;
                         delete cache2;
+                        for (size_t i = 0; i < blocks.size(); i++)
+                        {
+                            if (blocks.at(i).getType() == 4)
+                            {
+                                blocks.at(i).computeRay(blocks);
+                            }
+                        }
                     }
                 }
             }
@@ -340,7 +397,7 @@ int main()
                         size_t xtotalNeededToAllocate = 1 + (((std::abs(xmin - xmax))) / 64);
                         size_t ytotalNeededToAllocate = 1 + (((std::abs(ymin - ymax))) / 64);
                         size_t total = (xtotalNeededToAllocate * ytotalNeededToAllocate);
-                        std::sort(blocks.begin(), blocks.end(), [](platformer::stationaryStaticBlock &lhs, platformer::stationaryStaticBlock &rhs)
+                        std::sort(blocks.begin(), blocks.end(), [](platformer::editorBlock &lhs, platformer::editorBlock &rhs)
                                   { return (lhs.getPosition().y < rhs.getPosition().y) || ((lhs.getPosition().y == rhs.getPosition().y) && (lhs.getPosition().x < rhs.getPosition().x)); });
                         std::string buf;
                         buf += std::to_string(background.r) + ' ' + std::to_string(background.g) + ' ' + std::to_string(background.b) + ' ' + std::to_string(background.a) + '\n';
@@ -377,17 +434,28 @@ int main()
                             animatedText.revive(time, 3);
                         }
                     }
-                    else if (realBuffers.at(0) == "/set" && realBuffers.at(1) == "background" && realBuffers.size() == 5)
+                    else if (realBuffers.at(0) == "/set")
                     {
-                        background.r = (std::stoi(realBuffers.at(2)) % 256);
-                        background.g = (std::stoi(realBuffers.at(3)) % 256);
-                        background.b = (std::stoi(realBuffers.at(4)) % 256);
+                        if (realBuffers.at(1) == "background" && realBuffers.size() == 5)
+                        {
+                            background.r = (std::stoi(realBuffers.at(2)) % 256);
+                            background.g = (std::stoi(realBuffers.at(3)) % 256);
+                            background.b = (std::stoi(realBuffers.at(4)) % 256);
+                        }
+                        else if (realBuffers.at(1) == "fps" && realBuffers.size() == 3)
+                        {
+                            SetTargetFPS(std::stoi(realBuffers.at(2)));
+                        }
                     }
                     else if (realBuffers.at(0) == "/help")
                     {
                         animatedText.setContent("See docs/usage.txt for commands");
                         animatedText.setDestination(0.1f, 0.7f);
                         animatedText.revive(time, 3);
+                    }
+                    else if (realBuffers.at(0) == "/showfps")
+                    {
+                        showFPS = !showFPS;
                     }
                     else if (realBuffers.at(0) == "/load")
                     {
@@ -447,27 +515,27 @@ int main()
                                 x = 0;
                                 break;
                             case ('M'):
-                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::lava, 64 * x, 9024 + (64 * y), 64, 64));
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::lava, 64 * x, 9024 + (64 * y), 64, 64));
                                 x++;
                                 break;
                             case ('L'):
-                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::laser, 64 * x, 9024 + (64 * y), 64, 64));
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::laser, 64 * x, 9024 + (64 * y), 64, 64));
                                 x++;
                                 break;
                             case ('B'):
-                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::brick, 64 * x, 9024 + (64 * y), 64, 64));
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brick, 64 * x, 9024 + (64 * y), 64, 64));
                                 x++;
                                 break;
                             case ('D'):
-                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::dirt, 64 * x, 9024 + (64 * y), 64, 64));
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::dirt, 64 * x, 9024 + (64 * y), 64, 64));
                                 x++;
                                 break;
                             case ('G'):
-                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::grass, 64 * x, 9024 + (64 * y), 64, 64));
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::grass, 64 * x, 9024 + (64 * y), 64, 64));
                                 x++;
                                 break;
                             case ('S'):
-                                blocks.push_back(platformer::stationaryStaticBlock(platformer::blocks::editor::playerSpawn, 64 * x, 9024 + (64 * y), 64, 64));
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::playerSpawn, 64 * x, 9024 + (64 * y), 64, 64));
                                 blocks.at(blocks.size() - 1).setPosition(64 * x, 9024 + (64 * y));
                                 x++;
                                 break;
@@ -478,6 +546,13 @@ int main()
                         }
                         UnloadFileText(readme);
                         viewPort.target = (blocks.at(rand() % blocks.size())).getPosition();
+                        for (size_t i = 0; i < blocks.size(); i++)
+                        {
+                            if (blocks.at(i).getType() == 4)
+                            {
+                                blocks.at(i).computeRay(blocks);
+                            }
+                        }
                     }
                     else if (realBuffers.at(0) == "/showlasers")
                     {
