@@ -43,6 +43,7 @@ int main(int argc, char **argv)
         Texture2D spritesheet = LoadTexture("assets/tilesheet.png");
         Vector2 mousePosition {0, 0};
         float hypotenuse {1.0f};
+        float tickRate {1.0f/60.0f};
         // These variables are used for animation
         size_t globalIterables[2] = {0, 0};
         bool workerStatus{1};
@@ -74,7 +75,7 @@ int main(int argc, char **argv)
                          });
         std::thread everyOneSec(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[0]), std::ref(workerStatus), 1000);
         std::thread every100ms(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[1]), std::ref(workerStatus), 100);
-        std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses));
+        std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses), std::ref(tickRate));
         // Assign any animated blocks a pointer to a size_t
         for (auto i : animatedBlocks)
         {
@@ -93,7 +94,7 @@ int main(int argc, char **argv)
             ClearBackground(background);
             if (isPaused)
             {
-                platformer::ui::alternateRenderer(mousePosition, resolution, isPaused, isRunning, spritesheet, hypotenuse);
+                platformer::ui::alternateRenderer(mousePosition, resolution, isPaused, isRunning, spritesheet, hypotenuse, tickRate);
             }
             else
             {
@@ -138,6 +139,10 @@ int main(int argc, char **argv)
             if (IsKeyPressed(KEY_ESCAPE))
             {
                 isPaused = !isPaused;
+                if (!isPaused)
+                {
+                    tickRate = 1.0f / 60.0f;
+                }
             }
             //std::cout << GetGamepadButtonPressed() << '\n';
             platformer::settings::activeKeypresses[0] = (IsKeyDown(KEY_D) xor (GetGamepadAxisMovement(0, 0) > 0));

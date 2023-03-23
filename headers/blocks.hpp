@@ -50,12 +50,12 @@ namespace platformer
                 std::this_thread::sleep_for(std::chrono::milliseconds(ms));
             }
         }
-        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> & staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> & animatedBlocks, player & pplayer,bool & workerStatus, std::vector<int> & activeKeypresses)
+        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> & staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> & animatedBlocks, player & pplayer,bool & workerStatus, std::vector<int> & activeKeypresses, float & tickRate)
         {
             while (workerStatus)
             {
                 std::chrono::_V2::system_clock::time_point estimatedCompletionTime = std::chrono::system_clock::now() + std::chrono::milliseconds(16);
-                pplayer.doPhysicsStep(staticBlocks, animatedBlocks, 0.01666f);
+                pplayer.doPhysicsStep(staticBlocks, animatedBlocks, tickRate);
                 if (activeKeypresses[0])
                 {
                     pplayer.incrementDesiredMovement(pplayer.getSpeed(), 0);

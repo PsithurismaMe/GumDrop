@@ -21,8 +21,9 @@ namespace platformer
             quitButton.setIterablePointer(&quitButtonIsHighlighted);
             returnToGameButton.setIterablePointer(&returnButtonIsHighlighted);
         }
-        void alternateRenderer(Vector2 & mousePos, Vector2 & screenDimentions, bool & isPaused, bool & isRunning, Texture2D & spritesheet, float c)
+        void alternateRenderer(Vector2 & mousePos, Vector2 & screenDimentions, bool & isPaused, bool & isRunning, Texture2D & spritesheet, float c, float & tickRate)
         {
+            tickRate = 0;
             Rectangle qtb = {(screenDimentions.x / 2), (screenDimentions.y * 0.8f), 128, 64};
             Rectangle rtg = {(screenDimentions.x / 2) - 128, (screenDimentions.y * 0.8f), 128, 64};
             platformer::ui::quitButton.setInGameRectangle(qtb);
@@ -44,7 +45,8 @@ namespace platformer
                 platformer::ui::returnButtonIsHighlighted = 1;
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
                 {
-                    isPaused = 0;                
+                    isPaused = 0;   
+                    tickRate = 1.0f / 60.0f;             
                 }
             }
             else

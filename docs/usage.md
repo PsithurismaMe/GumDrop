@@ -35,10 +35,9 @@ If you want to compile this on Windows, Have fun.
 | Jump | SPACE |
 | Open console | / |
 | Submit console command | ENTER |
-| Pause * | ESCAPE |
+| Pause | ESCAPE |
 | Set Checkpoint * | Minus |
 
-\* As of writing, pausing the game does not stop game physics. <br>
 \* Checkpoints will be disabled in the future. <br>
 \* Controllers are technically supported but all inputs are binary. <br>
 
