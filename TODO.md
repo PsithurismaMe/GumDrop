@@ -8,6 +8,7 @@
 - [X] Untie user inputs from framerate
 - [X] Serialize background color and/or Background image
 - [ ] Write a storyline for the game
+- [ ] Add save functionality
 - [ ] Create levels that are appropriate for the storyline
 - [X] Reimplement collision checking
 - [X] Reimplement player drawing
