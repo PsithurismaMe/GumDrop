@@ -52,10 +52,11 @@ namespace platformer
             editorBlock lava;        // 5
             editorBlock playerSpawn; // 6
             editorBlock toggleLaserVisibility; // 7
+            editorBlock portal; // 8
             // Returns the char which corresponds to a type
             char typeToChar(int type)
             {
-                char types[] = {'G', 'D', 'B', 'L', 'M', 'S'};
+                char types[] = {'G', 'D', 'B', 'L', 'M', 'S', ' ', 'P'};
                 return types[type - 1];
             }
             std::vector<editorBlock *> types;
@@ -67,12 +68,14 @@ namespace platformer
                 laser.setPositionOnSpriteSheet({0, 1792, 64, 64});
                 lava.setPositionOnSpriteSheet({0, 1856, 64, 64});
                 playerSpawn.setPositionOnSpriteSheet({0, 1984, 64, 64});
+                portal.setPositionOnSpriteSheet({0, 192, 64, 64});
                 toggleLaserVisibility.setPositionOnSpriteSheet({64, 1728, 64, 64});
                 grass.setGroupNumber(-1);
                 dirt.setGroupNumber(-1);
                 brick.setGroupNumber(-1);
                 laser.setGroupNumber(-1);
                 lava.setGroupNumber(-1);
+                portal.setGroupNumber(-1);
                 playerSpawn.setGroupNumber(-1);
                 toggleLaserVisibility.setGroupNumber(-1);
                 grass.setType(1);
@@ -80,6 +83,7 @@ namespace platformer
                 brick.setType(3);
                 laser.setType(4);
                 lava.setType(5);
+                portal.setType(8);
                 playerSpawn.setType(6);
                 toggleLaserVisibility.setType(7);
                 types.push_back(&grass);
@@ -89,6 +93,7 @@ namespace platformer
                 types.push_back(&lava);
                 types.push_back(&playerSpawn);
                 types.push_back(&toggleLaserVisibility);
+                types.push_back(&portal);
             }
             bool clickCheck(Vector2 &mousePos, editorBlock *subject)
             {
@@ -547,6 +552,10 @@ int main()
                                 blocks.push_back(platformer::editorBlock(platformer::blocks::editor::grass, 64 * x, 9024 + (64 * y), 64, 64));
                                 x++;
                                 break;
+                            case ('P'):
+                            blocks.push_back(platformer::editorBlock(platformer::blocks::editor::portal, 64 * x, 9024 + (64 * y), 64, 64));
+                            x++;
+                            break;
                             case ('S'):
                                 blocks.push_back(platformer::editorBlock(platformer::blocks::editor::playerSpawn, 64 * x, 9024 + (64 * y), 64, 64));
                                 blocks.at(blocks.size() - 1).setPosition(64 * x, 9024 + (64 * y));

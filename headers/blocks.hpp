@@ -10,6 +10,7 @@ namespace platformer
         stationaryStaticBlock brick; // 3
         stationaryAnimatedBlock laser; // 4
         stationaryAnimatedBlock lava; // 5
+        stationaryAnimatedBlock portal; // 6
         player templatePlayer;
         Camera2D inGameCamera;
         // Create template blocks on the stack
@@ -19,6 +20,9 @@ namespace platformer
             dirt.setPositionOnSpriteSheet({64, 0, 64, 64});
             brick.setPositionOnSpriteSheet({128, 0, 64, 64});
             laser.setInitialPositionOnSpriteSheet({0, 1792, 64, 64});
+            portal.setInitialPositionOnSpriteSheet({0, 192, 64, 64});
+            portal.setPixelsToOffset(64, 0);
+            portal.setMaxFrames(5);
             laser.setPixelsToOffset(64, 0);
             laser.setMaxFrames(2);
             lava.setInitialPositionOnSpriteSheet({0, 1856, 64, 64});
@@ -34,6 +38,7 @@ namespace platformer
             brick.setType(3);
             laser.setType(4);
             lava.setType(5);
+            portal.setType(6);
             templatePlayer.setInitialPositionOnSpriteSheet({0, 1984, 64, 64});
             templatePlayer.setPixelsToOffset(64, 0);
             templatePlayer.setMaxFrames(5);
@@ -44,18 +49,19 @@ namespace platformer
         }
         void incrementEveryMilliseconds(size_t &iterator, bool &workerLife, int ms)
         {
+            
             while (workerLife)
             {
                 iterator++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(ms));
             }
         }
-        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> & staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> & animatedBlocks, player & pplayer,bool & workerStatus, std::vector<int> & activeKeypresses, float & tickRate)
+        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> & staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> & animatedBlocks, player & pplayer,bool & workerStatus, std::vector<int> & activeKeypresses, float & tickRate, std::string & file)
         {
             while (workerStatus)
             {
                 std::chrono::_V2::system_clock::time_point estimatedCompletionTime = std::chrono::system_clock::now() + std::chrono::milliseconds(16);
-                pplayer.doPhysicsStep(staticBlocks, animatedBlocks, tickRate);
+                pplayer.doPhysicsStep(staticBlocks, animatedBlocks, tickRate, file);
                 if (activeKeypresses[0])
                 {
                     pplayer.incrementDesiredMovement(pplayer.getSpeed(), 0);
@@ -175,6 +181,10 @@ namespace platformer
                         templatePlayer.setPosition(64 * x, 64 * y);
                         templatePlayer.setInitialSpawnPosition(64 * x, 64 * y);
                         templatePlayer.setCheckpoint(64 * x, 64 * y);
+                        x++;
+                        break;
+                    case ('P'):
+                        aDest.push_back(new platformer::stationaryAnimatedBlock(portal, 64 * x, 64 * y, 64, 64, nullptr));
                         x++;
                         break;
                     default:

@@ -241,11 +241,20 @@ namespace platformer
         Vector2 dragCoefficent{100.0f, 128.0f};
         Vector2 checkpoint;
         bool canJump{1};
-        bool canFastFall {0};
+        bool canFastFall{0};
         int isMoving{0};
         Vector2 playerDesiredMovement;
+        bool reloadLevel{0};
 
     public:
+        void setReloadStatus(bool s)
+        {
+            reloadLevel = s;
+        }
+        bool getReloadStatus()
+        {
+            return reloadLevel;
+        }
         void setDesiredMovement(float x, float y)
         {
             playerDesiredMovement.x = x;
@@ -304,7 +313,7 @@ namespace platformer
             // This is slightly smaller than the actual sprite because floating point approximation limitations
             return {(inGamePositionDimension.x) + (velocity.x * timeDelta * xAxisOverride), (inGamePositionDimension.y + 23) + (velocity.y * timeDelta * yAxisOverride), 63, 41};
         }
-        void doPhysicsStep(std::vector<stationaryStaticBlock *> &staticBlocks, std::vector<stationaryAnimatedBlock *> &animatedBlocks, float frameDelta)
+        void doPhysicsStep(std::vector<stationaryStaticBlock *> &staticBlocks, std::vector<stationaryAnimatedBlock *> &animatedBlocks, float frameDelta, std::string &file)
         {
             velocity.y += 1 * dragCoefficent.y * frameDelta;
             velocity.x > 0 ? velocity.x -= 1 *dragCoefficent.x *frameDelta : velocity.x += 1 * dragCoefficent.x * frameDelta;
@@ -383,10 +392,22 @@ namespace platformer
                 else if (animatedBlocks.at(i)->getType() == 5)
                 {
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
-                    if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4 , cache.width - 8, cache.height - 8}))
+                    if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
                     {
                         inGamePositionDimension.x = checkpoint.x;
                         inGamePositionDimension.y = checkpoint.y;
+                        break;
+                    }
+                }
+                else if (animatedBlocks.at(i)->getType() == 6)
+                {
+                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
+                    if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
+                    {
+                        int o = std::stoi(file);
+                        o++;
+                        file = std::to_string(o);
+                        reloadLevel = 1;
                         break;
                     }
                 }
@@ -444,8 +465,8 @@ namespace platformer
         std::array<float, 100> frameTimes;
         bool isInConsole;
         bool fpsIsVisible{0};
-        int indexToEdit {0};
-        int parseArguments(std::string &filename, bool & fullscreen)
+        int indexToEdit{0};
+        int parseArguments(std::string &filename, bool &fullscreen)
         {
             arguments.clear();
             std::string buffer;
@@ -510,7 +531,7 @@ namespace platformer
         }
 
     public:
-        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string &filename, bool & fullscreen)
+        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string &filename, bool &fullscreen)
         {
             int returnVal = 0;
             if (fpsIsVisible)
@@ -518,18 +539,18 @@ namespace platformer
                 frameTimes[indexToEdit] = GetFrameTime();
                 indexToEdit++;
                 indexToEdit = indexToEdit % 100;
-                float sum {0};
-                for (int i = 0 ; i < 100 ; i++)
+                float sum{0};
+                for (int i = 0; i < 100; i++)
                 {
                     sum += frameTimes[indexToEdit];
                 }
                 float mean = sum / 100.0f;
                 for (int i = 0; i < 50; i++)
                 {
-                    DrawLine(i, ((frameTimes[i] / mean) * 10 ) + windowResolution.y / 2, i + 1, ((frameTimes[i + 1] / mean) * 10) + windowResolution.y / 2, YELLOW);
+                    DrawLine(i, ((frameTimes[i] / mean) * 10) + windowResolution.y / 2, i + 1, ((frameTimes[i + 1] / mean) * 10) + windowResolution.y / 2, YELLOW);
                 }
-                DrawText(TextFormat("FPS: %d", (int)(1.0f/mean)), positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y, 0.01f * hypotenuse, YELLOW);
-                //DrawText(TextFormat("stddvn: %f", stdv), positionToDrawFPS.x * windowResolution.x, (0.1f + positionToDrawFPS.y) * windowResolution.y, 0.01f * hypotenuse, YELLOW);
+                DrawText(TextFormat("FPS: %d", (int)(1.0f / mean)), positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y, 0.01f * hypotenuse, YELLOW);
+                // DrawText(TextFormat("stddvn: %f", stdv), positionToDrawFPS.x * windowResolution.x, (0.1f + positionToDrawFPS.y) * windowResolution.y, 0.01f * hypotenuse, YELLOW);
             }
             if (isInConsole)
             {

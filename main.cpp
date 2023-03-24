@@ -9,7 +9,7 @@ int main(int argc, char **argv)
     Color background;
     Vector2 resolution = {800, 400};
     // Specify the level to load upon startup
-    std::string filename = "myLevel.lvl";
+    std::string filename = "1";
     while (isRunning)
     {
         // Create vectors to store blocks on the heap
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
                                  for (size_t i = 0; i < staticBlocks.size(); i++)
                                  {
                                      Vector2 cache = GetWorldToScreen2D(staticBlocks.at(i)->getPosition(), platformer::blocks::inGameCamera);
-                                     if (cache.x < resolution.x && cache.x > 0 && cache.y < resolution.y && cache.y > 0)
+                                     if (cache.x < resolution.x && cache.x > -64 && cache.y < resolution.y && cache.y > -64)
                                      {
                                          staticBlocks.at(i)->setVisibility(1);
                                      }
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
                          });
         std::thread everyOneSec(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[0]), std::ref(workerStatus), 1000);
         std::thread every100ms(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[1]), std::ref(workerStatus), 100);
-        std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses), std::ref(tickRate));
+        std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses), std::ref(tickRate), std::ref(filename));
         // Assign any animated blocks a pointer to a size_t
         for (auto i : animatedBlocks)
         {
@@ -151,6 +151,10 @@ int main(int argc, char **argv)
             platformer::settings::activeKeypresses[1] = (IsKeyDown(KEY_A) xor (GetGamepadAxisMovement(0, 0) < 0));
             platformer::settings::activeKeypresses[2] = (IsKeyDown(KEY_SPACE) xor IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN));
             platformer::settings::activeKeypresses[3] = (IsKeyDown(KEY_MINUS) xor IsGamepadButtonDown(0, GAMEPAD_BUTTON_LEFT_FACE_DOWN));
+            if (player.getReloadStatus())
+            {
+                break;
+            }
         }
         workerStatus = 0;
         every100ms.join();
