@@ -81,10 +81,13 @@ If you want to compile this on Windows, Have fun.
 | Toggle FPS counter * | `/showfps` |
 | Randomly generate a level * | `/generate <width> <height>` |
 | Toggle fullscreen | `/fullscreen` |
+| Reset level | `/reset level` |
+| Reset save data * | `/reset savedata` |
 
 \* Levels must be in `/levels/` <br>
 \* You will also see a graph showing your frametimes <br>
 \* The generated level will have a random name as well <br>
+\* Save data is written if you switch levels using portals <br>
 
 
 <br/>

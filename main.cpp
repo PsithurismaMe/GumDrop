@@ -2,83 +2,63 @@
 
 int main(int argc, char **argv)
 {
-    // Seed random number generator
     srand(time(nullptr));
     bool isRunning{1};
-    bool fullscreen {0};
     Color background;
     Vector2 resolution = {800, 400};
-    // Specify the level to load upon startup
+    InitWindow(resolution.x, resolution.y, "A Window");
+    Texture2D spritesheet = LoadTexture("assets/tilesheet.png");
+    Image windowIcon = LoadImage("assets/icon.png");
+    SetExitKey(-1);
+    SetWindowIcon(windowIcon);
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
     std::string filename = "1";
+    if (FileExists(".savedata"))
+    {
+        char * data = LoadFileText(".savedata");
+        filename = data;
+        UnloadFileText(data);
+    }
+    platformer::blocks::init();
+    platformer::ui::init();
+    std::vector<platformer::stationaryStaticBlock *> staticBlocks;
+    std::vector<platformer::stationaryAnimatedBlock *> animatedBlocks;
     while (isRunning)
     {
-        // Create vectors to store blocks on the heap
-        std::vector<platformer::stationaryStaticBlock *> staticBlocks;
-        std::vector<platformer::stationaryAnimatedBlock *> animatedBlocks;
-        // Instansiate any template blocks on the stack
-        platformer::blocks::init();
-        platformer::ui::init();
-        // Initialize raylib
-        InitWindow(resolution.x, resolution.y, "A Window");
         // Warn the user that this multithreaded program may not run correctly on old systems.
         {
             unsigned int threads = std::thread::hardware_concurrency();
-            if (threads < 5)
-            {
-                std::cerr << "WARN: SYSTEM: Your system supports only " << threads << " concurrent threads. You may experience stuttering or other bugs. Capping your framerate may resolve stuttering\n";
-            }
+            if (threads < 5) { std::cerr << "WARN: SYSTEM: Your system supports only " << threads << " concurrent threads. You may experience stuttering or other bugs. Capping your framerate may resolve stuttering\n"; }
         }
-        // Change raylibs default exit key to something impossible to press
-        SetExitKey(-1);
-        // Load the level and store any blocks in the vectors above
         std::string temporaryFileName = "levels/" + filename;
         platformer::blocks::loadFromFile(temporaryFileName.c_str(), staticBlocks, animatedBlocks, background);
-        // Allow the window manager to handle resizing
-        SetWindowState(FLAG_WINDOW_RESIZABLE);
-        if (fullscreen)
-        {
-            SetWindowState(FLAG_FULLSCREEN_MODE);
-        }
-        // Load textures
-        Texture2D spritesheet = LoadTexture("assets/tilesheet.png");
-        Image windowIcon = LoadImage("assets/icon.png");
-        SetWindowIcon(windowIcon);
-        Vector2 mousePosition {0, 0};
-        float hypotenuse {1.0f};
-        float tickRate {1.0f/60.0f};
+        Vector2 mousePosition{0, 0};
+        float hypotenuse{1.0f};
+        float tickRate{1.0f / 60.0f};
         // These variables are used for animation
         size_t globalIterables[2] = {0, 0};
         bool workerStatus{1};
         bool isPaused{0};
         wchar_t keypress{0};
         platformer::console console;
-        // Instansiate a player and copy the templatePlayer
         platformer::player player = platformer::blocks::templatePlayer;
         // Used for animation
         player.setIterablePointer(&globalIterables[1]);
         // Used to optimize collision checking and drawing
         std::thread optimization([&]
-                         {
-                             while (workerStatus)
-                             {
-                                 for (size_t i = 0; i < staticBlocks.size(); i++)
-                                 {
-                                     Vector2 cache = GetWorldToScreen2D(staticBlocks.at(i)->getPosition(), platformer::blocks::inGameCamera);
-                                     if (cache.x < resolution.x && cache.x > -64 && cache.y < resolution.y && cache.y > -64)
-                                     {
-                                         staticBlocks.at(i)->setVisibility(1);
-                                     }
-                                     else
-                                     {
-                                         staticBlocks.at(i)->setVisibility(0);
-                                     }
-                                 }
-                             }
-                         });
+                                {
+                                while (workerStatus)
+                                {
+                                    for (size_t i = 0; i < staticBlocks.size(); i++)
+                                    {
+                                        Vector2 cache = GetWorldToScreen2D(staticBlocks.at(i)->getPosition(), platformer::blocks::inGameCamera);
+                                        (cache.x < resolution.x && cache.x > -64 && cache.y < resolution.y && cache.y > -64) ? staticBlocks.at(i)->setVisibility(1) : staticBlocks.at(i)->setVisibility(0);
+                                    }
+                                }           
+                                });
         std::thread everyOneSec(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[0]), std::ref(workerStatus), 1000);
         std::thread every100ms(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[1]), std::ref(workerStatus), 100);
         std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses), std::ref(tickRate), std::ref(filename));
-        // Assign any animated blocks a pointer to a size_t
         for (auto i : animatedBlocks)
         {
             i->setIterablePointer(&globalIterables[1]);
@@ -127,12 +107,11 @@ int main(int argc, char **argv)
                 player.draw(spritesheet);
                 EndMode2D();
             }
-            // Since you can load other levels from the console, it must be able to break this while loop without closing the program.
-            if (console.draw(resolution, hypotenuse, keypress, filename, fullscreen) == -1)
+            if (console.draw(resolution, hypotenuse, keypress, filename) == -1)
             {
                 break;
             }
-               EndDrawing();
+            EndDrawing();
             keypress = GetCharPressed();
             if (IsKeyPressed(KEY_SLASH))
             {
@@ -146,7 +125,6 @@ int main(int argc, char **argv)
                     tickRate = 1.0f / 60.0f;
                 }
             }
-            //std::cout << GetGamepadButtonPressed() << '\n';
             platformer::settings::activeKeypresses[0] = (IsKeyDown(KEY_D) xor (GetGamepadAxisMovement(0, 0) > 0));
             platformer::settings::activeKeypresses[1] = (IsKeyDown(KEY_A) xor (GetGamepadAxisMovement(0, 0) < 0));
             platformer::settings::activeKeypresses[2] = (IsKeyDown(KEY_SPACE) xor IsGamepadButtonDown(0, GAMEPAD_BUTTON_RIGHT_FACE_DOWN));
@@ -172,8 +150,8 @@ int main(int argc, char **argv)
         }
         staticBlocks.clear();
         animatedBlocks.clear();
-        UnloadTexture(spritesheet);
-        UnloadImage(windowIcon);
-        CloseWindow();
     }
+    UnloadTexture(spritesheet);
+    UnloadImage(windowIcon);
+    CloseWindow();
 }

@@ -408,6 +408,7 @@ namespace platformer
                         o++;
                         file = std::to_string(o);
                         reloadLevel = 1;
+                        SaveFileText(".savedata", (char *) file.c_str());
                         break;
                     }
                 }
@@ -466,72 +467,14 @@ namespace platformer
         bool isInConsole;
         bool fpsIsVisible{0};
         int indexToEdit{0};
-        int parseArguments(std::string &filename, bool &fullscreen)
+        int parseArguments(std::string &filename)
         {
-            arguments.clear();
-            std::string buffer;
-            std::stringstream otherCin(cin);
-            while (std::getline(otherCin, buffer, ' '))
-            {
-                arguments.push_back(buffer);
-            }
-            try
-            {
-                if (arguments.at(0) == "/showfps")
-                {
-                    fpsIsVisible = !fpsIsVisible;
-                }
-                if (arguments.at(0) == "/load")
-                {
-                    std::string flnm = "levels/" + arguments.at(1);
-                    if (FileExists(flnm.c_str()))
-                    {
-                        filename = arguments.at(1);
-                        return -1;
-                    }
-                }
-                if (arguments.at(0) == "/fullscreen")
-                {
-                    ToggleFullscreen();
-                    fullscreen = !fullscreen;
-                }
-                if (arguments.at(0) == "/generate" && arguments.size() > 2)
-                {
-                    int x, y;
-                    x = std::stoi(arguments.at(1));
-                    y = std::stoi(arguments.at(2));
-                    std::string thingToOutput;
-                    std::string fileOut = "levels/";
-                    char blocks[] = ".LMBDG";
-                    thingToOutput += "0 0 0 255\n";
-                    for (int k = 0; k < y; k++)
-                    {
-                        for (int a = 0; a < x; a++)
-                        {
-                            thingToOutput += blocks[rand() % 6];
-                        }
-                        thingToOutput += '\n';
-                    }
-                    thingToOutput.pop_back();
-                    thingToOutput.at(rand() % thingToOutput.size() - 1) = 'S';
-                    std::string placeholder = std::to_string(rand());
-                    fileOut += placeholder;
-                    fileOut += ".lvl";
-                    SaveFileText(fileOut.c_str(), (char *)thingToOutput.c_str());
-                    filename = placeholder;
-                    filename += ".lvl";
-                    return -1;
-                }
-            }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << '\n';
-            }
+
             return 0;
         }
 
     public:
-        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string &filename, bool &fullscreen)
+        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string &filename)
         {
             int returnVal = 0;
             if (fpsIsVisible)
@@ -564,7 +507,76 @@ namespace platformer
                 }
                 if (IsKeyPressed(KEY_ENTER))
                 {
-                    returnVal = parseArguments(filename, fullscreen);
+                    int returnVal{0};
+                    arguments.clear();
+                    std::string buffer;
+                    std::stringstream otherCin(cin);
+                    while (std::getline(otherCin, buffer, ' '))
+                    {
+                        arguments.push_back(buffer);
+                    }
+                    try
+                    {
+                        if (arguments.at(0) == "/showfps")
+                        {
+                            fpsIsVisible = !fpsIsVisible;
+                        }
+                        if (arguments.at(0) == "/load")
+                        {
+                            std::string flnm = "levels/" + arguments.at(1);
+                            if (FileExists(flnm.c_str()))
+                            {
+                                filename = arguments.at(1);
+                                return -1;
+                            }
+                        }
+                        if (arguments.at(0) == "/fullscreen")
+                        {
+                            ToggleFullscreen();
+                        }
+                        if (arguments.at(0) == "/reset")
+                        {
+                            if (arguments.at(1) == "savedata")
+                            {
+                                remove(".savedata");
+                            }
+                            if (arguments.at(1) == "level")
+                            {
+                                return -1;
+                            }
+                        }
+                        if (arguments.at(0) == "/generate" && arguments.size() > 2)
+                        {
+                            int x, y;
+                            x = std::stoi(arguments.at(1));
+                            y = std::stoi(arguments.at(2));
+                            std::string thingToOutput;
+                            std::string fileOut = "levels/";
+                            char blocks[] = ".LMBDG";
+                            thingToOutput += "0 0 0 255\n";
+                            for (int k = 0; k < y; k++)
+                            {
+                                for (int a = 0; a < x; a++)
+                                {
+                                    thingToOutput += blocks[rand() % 6];
+                                }
+                                thingToOutput += '\n';
+                            }
+                            thingToOutput.pop_back();
+                            thingToOutput.at(rand() % thingToOutput.size() - 1) = 'S';
+                            std::string placeholder = std::to_string(rand());
+                            fileOut += placeholder;
+                            fileOut += ".lvl";
+                            SaveFileText(fileOut.c_str(), (char *)thingToOutput.c_str());
+                            filename = placeholder;
+                            filename += ".lvl";
+                            return -1;
+                        }
+                    }
+                    catch (const std::exception &e)
+                    {
+                        std::cerr << e.what() << '\n';
+                    }
                     toggleConsole();
                     cin.clear();
                 }
@@ -620,4 +632,9 @@ namespace platformer
             humanReadableName = name;
         }
     };
+    struct saveData
+    {
+        int currentLevel;
+    };
+    
 }
