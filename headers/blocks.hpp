@@ -5,15 +5,14 @@ namespace platformer
 {
     namespace blocks
     {
-        stationaryStaticBlock grass; // 1
-        stationaryStaticBlock dirt; // 2
-        stationaryStaticBlock brick; // 3
-        stationaryAnimatedBlock laser; // 4
-        stationaryAnimatedBlock lava; // 5
-        stationaryAnimatedBlock portal; // 6
-        player templatePlayer;
+        stationaryStaticBlock grass;    // 1
+        stationaryStaticBlock dirt;     // 2
+        stationaryStaticBlock brick;    // 3
+        stationaryAnimatedBlock laser;  // 4
+        stationaryAnimatedBlock lava;   // 5
+        player templatePlayer;          // 6
+        stationaryAnimatedBlock portal; // 7
         Camera2D inGameCamera;
-        // Create template blocks on the stack
         void init()
         {
             grass.setPositionOnSpriteSheet({0, 0, 64, 64});
@@ -33,30 +32,29 @@ namespace platformer
             brick.setGroupNumber(-1);
             laser.setGroupNumber(-1);
             lava.setGroupNumber(-1);
-            grass.setType(1);
-            dirt.setType(2);
-            brick.setType(3);
-            laser.setType(4);
-            lava.setType(5);
-            portal.setType(6);
+            grass.setType(valuesOfBlocks::Grass);
+            dirt.setType(valuesOfBlocks::Dirt);
+            brick.setType(valuesOfBlocks::Brick);
+            laser.setType(valuesOfBlocks::LaserFacingRightNoTimeOffset);
+            lava.setType(valuesOfBlocks::Lava);
+            portal.setType(valuesOfBlocks::Portal);
             templatePlayer.setInitialPositionOnSpriteSheet({0, 1984, 64, 64});
             templatePlayer.setPixelsToOffset(64, 0);
             templatePlayer.setMaxFrames(5);
             inGameCamera.offset = {400, 200};
             inGameCamera.rotation = 0;
             inGameCamera.zoom = 1;
-
         }
         void incrementEveryMilliseconds(size_t &iterator, bool &workerLife, int ms)
         {
-            
+
             while (workerLife)
             {
                 iterator++;
                 std::this_thread::sleep_for(std::chrono::milliseconds(ms));
             }
         }
-        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> & staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> & animatedBlocks, player & pplayer,bool & workerStatus, std::vector<int> & activeKeypresses, float & tickRate, std::string & file)
+        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> &staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> &animatedBlocks, player &pplayer, bool &workerStatus, std::vector<int> &activeKeypresses, float &tickRate, std::string &file)
         {
             while (workerStatus)
             {
@@ -99,11 +97,10 @@ namespace platformer
             {
                 while (status)
                 {
-                    
                 }
             }
         }
-        void loadFromFile(const char *filename, std::vector<platformer::stationaryStaticBlock *> &dest, std::vector<platformer::stationaryAnimatedBlock *> &aDest, Color & backgroundColor)
+        void loadFromFile(const char *filename, std::vector<platformer::stationaryStaticBlock *> &dest, std::vector<platformer::stationaryAnimatedBlock *> &aDest, Color &backgroundColor)
         {
             if (FileExists(filename))
             {
@@ -157,33 +154,33 @@ namespace platformer
                         y++;
                         x = 0;
                         break;
-                    case ('M'):
-                        aDest.push_back(new platformer::stationaryAnimatedBlock(lava, 64 * x, 64 * y, 64, 64, nullptr));
-                        x++;
-                        break;
-                    case ('L'):
-                        aDest.push_back(new platformer::stationaryAnimatedBlock(laser, 64 * x, 64 * y, 64, 64, nullptr));
-                        x++;
-                        break;
-                    case ('B'):
-                        dest.push_back(new platformer::stationaryStaticBlock(brick, 64 * x, 64 * y, 64, 64));
-                        x++;
-                        break;
-                    case ('D'):
-                        dest.push_back(new platformer::stationaryStaticBlock(dirt, 64 * x, 64 * y, 64, 64));
-                        x++;
-                        break;
-                    case ('G'):
+                    case (platformer::valuesOfBlocks::Grass):
                         dest.push_back(new platformer::stationaryStaticBlock(grass, 64 * x, 64 * y, 64, 64));
                         x++;
                         break;
-                    case ('S'):
+                    case (platformer::valuesOfBlocks::Dirt):
+                        dest.push_back(new platformer::stationaryStaticBlock(dirt, 64 * x, 64 * y, 64, 64));
+                        x++;
+                        break;
+                    case (platformer::valuesOfBlocks::Brick):
+                        dest.push_back(new platformer::stationaryStaticBlock(brick, 64 * x, 64 * y, 64, 64));
+                        x++;
+                        break;
+                    case (platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset):
+                        aDest.push_back(new platformer::stationaryAnimatedBlock(laser, 64 * x, 64 * y, 64, 64, nullptr));
+                        x++;
+                        break;
+                    case (platformer::valuesOfBlocks::Lava):
+                        aDest.push_back(new platformer::stationaryAnimatedBlock(lava, 64 * x, 64 * y, 64, 64, nullptr));
+                        x++;
+                        break;
+                    case (platformer::valuesOfBlocks::PlayerSpawn):
                         templatePlayer.setPosition(64 * x, 64 * y);
                         templatePlayer.setInitialSpawnPosition(64 * x, 64 * y);
                         templatePlayer.setCheckpoint(64 * x, 64 * y);
                         x++;
                         break;
-                    case ('P'):
+                    case (platformer::valuesOfBlocks::Portal):
                         aDest.push_back(new platformer::stationaryAnimatedBlock(portal, 64 * x, 64 * y, 64, 64, nullptr));
                         x++;
                         break;

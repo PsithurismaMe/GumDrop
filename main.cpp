@@ -84,7 +84,7 @@ int main(int argc, char **argv)
                 // Draw laser beams
                 for (int i = 0; i < animatedBlocks.size(); i++)
                 {
-                    if (animatedBlocks.at(i)->getType() == 4 && animatedBlocks.at(i)->getFrameDisplayed() == 1)
+                    if (animatedBlocks.at(i)->getType() == platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset && animatedBlocks.at(i)->getFrameDisplayed() == 1)
                     {
                         animatedBlocks.at(i)->setIterablePointer(&globalIterables[0]);
                         Vector2 source = animatedBlocks.at(i)->getPosition();

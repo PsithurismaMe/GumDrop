@@ -13,6 +13,20 @@ namespace platformer
 {
     // All objects that are collidable must be derived from this parent class
     // No collidable should be deleted or added UNTIL ALL THREADS are done accessing it
+
+    // When accessing a blocks type, use these enum values
+    // 
+    enum valuesOfBlocks
+    {
+        Grass = 47,
+        Dirt,
+        Brick,
+        LaserFacingRightNoTimeOffset,
+        Lava,
+        PlayerSpawn,
+        Portal,
+    };
+
     class collidable
     {
     protected:
@@ -378,7 +392,7 @@ namespace platformer
             }
             for (int i = 0; i < animatedBlocks.size(); i++)
             {
-                if (animatedBlocks.at(i)->getType() == 4 && animatedBlocks.at(i)->getFrameDisplayed() == 1)
+                if (animatedBlocks.at(i)->getType() == valuesOfBlocks::LaserFacingRightNoTimeOffset && animatedBlocks.at(i)->getFrameDisplayed() == 1)
                 {
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
                     deadlyWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 64, cache.y + 19, (float)animatedBlocks.at(i)->getRayLength(), 28});
@@ -389,7 +403,7 @@ namespace platformer
                         break;
                     }
                 }
-                else if (animatedBlocks.at(i)->getType() == 5)
+                else if (animatedBlocks.at(i)->getType() == valuesOfBlocks::Lava)
                 {
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
                     if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
@@ -399,7 +413,7 @@ namespace platformer
                         break;
                     }
                 }
-                else if (animatedBlocks.at(i)->getType() == 6)
+                else if (animatedBlocks.at(i)->getType() == valuesOfBlocks::Portal)
                 {
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
                     if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))

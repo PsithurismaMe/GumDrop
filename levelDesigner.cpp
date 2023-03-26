@@ -5,15 +5,15 @@ namespace platformer
 {
     class editorBlock : public stationaryStaticBlock
     {
-        int rayDistance {4000};
-        public:
+        int rayDistance{4000};
+
+    public:
         int getRayLength()
         {
             return rayDistance;
         }
         editorBlock()
         {
-
         }
         editorBlock(editorBlock &whereToInherit, int globalx, int globaly, int wid, int hgt)
         {
@@ -23,9 +23,9 @@ namespace platformer
             inGamePositionDimension.width = wid;
             inGamePositionDimension.height = hgt;
         }
-        void computeRay(std::vector<editorBlock> & obstecules)
+        void computeRay(std::vector<editorBlock> &obstecules)
         {
-            int lowest {4000};
+            int lowest{4000};
             for (size_t i = 0; i < obstecules.size(); i++)
             {
                 Vector2 cache = obstecules.at(i).getPosition();
@@ -45,20 +45,14 @@ namespace platformer
     {
         namespace editor
         {
-            editorBlock grass;       // 1
-            editorBlock dirt;        // 2
-            editorBlock brick;       // 3
-            editorBlock laser;       // 4
-            editorBlock lava;        // 5
-            editorBlock playerSpawn; // 6
-            editorBlock toggleLaserVisibility; // 7
-            editorBlock portal; // 8
-            // Returns the char which corresponds to a type
-            char typeToChar(int type)
-            {
-                char types[] = {'G', 'D', 'B', 'L', 'M', 'S', ' ', 'P'};
-                return types[type - 1];
-            }
+            editorBlock grass;
+            editorBlock dirt;
+            editorBlock brick;
+            editorBlock laser;
+            editorBlock lava;
+            editorBlock playerSpawn;
+            editorBlock portal;
+
             std::vector<editorBlock *> types;
             void init()
             {
@@ -69,7 +63,6 @@ namespace platformer
                 lava.setPositionOnSpriteSheet({0, 1856, 64, 64});
                 playerSpawn.setPositionOnSpriteSheet({0, 1984, 64, 64});
                 portal.setPositionOnSpriteSheet({0, 192, 64, 64});
-                toggleLaserVisibility.setPositionOnSpriteSheet({64, 1728, 64, 64});
                 grass.setGroupNumber(-1);
                 dirt.setGroupNumber(-1);
                 brick.setGroupNumber(-1);
@@ -77,22 +70,19 @@ namespace platformer
                 lava.setGroupNumber(-1);
                 portal.setGroupNumber(-1);
                 playerSpawn.setGroupNumber(-1);
-                toggleLaserVisibility.setGroupNumber(-1);
-                grass.setType(1);
-                dirt.setType(2);
-                brick.setType(3);
-                laser.setType(4);
-                lava.setType(5);
-                portal.setType(8);
-                playerSpawn.setType(6);
-                toggleLaserVisibility.setType(7);
+                grass.setType(valuesOfBlocks::Grass);
+                dirt.setType(valuesOfBlocks::Dirt);
+                brick.setType(valuesOfBlocks::Brick);
+                laser.setType(valuesOfBlocks::LaserFacingRightNoTimeOffset);
+                lava.setType(valuesOfBlocks::Lava);
+                portal.setType(valuesOfBlocks::Portal);
+                playerSpawn.setType(valuesOfBlocks::PlayerSpawn);
                 types.push_back(&grass);
                 types.push_back(&dirt);
                 types.push_back(&brick);
                 types.push_back(&laser);
                 types.push_back(&lava);
                 types.push_back(&playerSpawn);
-                types.push_back(&toggleLaserVisibility);
                 types.push_back(&portal);
             }
             bool clickCheck(Vector2 &mousePos, editorBlock *subject)
@@ -155,7 +145,7 @@ int main()
     platformer::editorBlock selectedBlock = platformer::blocks::editor::brick;
     platformer::blocks::editor::animatedText animatedText;
     std::vector<platformer::editorBlock> blocks;
-    Vector2 resolution {800, 400};
+    Vector2 resolution{800, 400};
     Vector2 mousePosition;
     Vector2 snappingMousePosition;
     Color background{0, 0, 0, 255};
@@ -172,8 +162,8 @@ int main()
     viewPort.rotation = 0;
     bool workerStatus{1};
     bool isInConsole{0};
-    bool drawLaserBeams {0};
-    bool showFPS {0};
+    bool drawLaserBeams{1};
+    bool showFPS{0};
     double time;
     std::string consoleBuffer;
     while (!WindowShouldClose())
@@ -207,7 +197,7 @@ int main()
         {
             for (size_t i = 0; i < blocks.size(); i++)
             {
-                if (blocks.at(i).getType() == 4)
+                if (blocks.at(i).getType() == platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset)
                 {
                     Vector2 source = blocks.at(i).getPosition();
                     DrawRectangle(source.x + 64, source.y + 19, blocks.at(i).getRayLength(), 28, {0, 255, 0, 255});
@@ -248,7 +238,7 @@ int main()
                 bool duplicateFound{0};
                 for (size_t i = 0; i < blocks.size(); i++)
                 {
-                    if (blocks.at(i).getType() == 6 && selectedBlock.getType() == 6)
+                    if (blocks.at(i).getType() == platformer::valuesOfBlocks::PlayerSpawn && selectedBlock.getType() == platformer::valuesOfBlocks::PlayerSpawn)
                     {
                         duplicateFound = 1;
                         break;
@@ -273,7 +263,7 @@ int main()
                     blocks.at(blocks.size() - 1).setVisibility(1);
                     for (size_t i = 0; i < blocks.size(); i++)
                     {
-                        if (blocks.at(i).getType() == 4)
+                        if (blocks.at(i).getType() == platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset)
                         {
                             blocks.at(i).computeRay(blocks);
                         }
@@ -318,7 +308,7 @@ int main()
                         delete cache2;
                         for (size_t i = 0; i < blocks.size(); i++)
                         {
-                            if (blocks.at(i).getType() == 4)
+                            if (blocks.at(i).getType() == platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset)
                             {
                                 blocks.at(i).computeRay(blocks);
                             }
@@ -349,15 +339,7 @@ int main()
         {
             if (platformer::blocks::editor::clickCheck(mousePosition, platformer::blocks::editor::types.at(i)))
             {
-                if (platformer::blocks::editor::types.at(i)->getType() != 7)
-                {
-                    selectedBlock = *(platformer::blocks::editor::types.at(i));
-                }
-                else
-                {
-                    drawLaserBeams = !drawLaserBeams;
-                    drawLaserBeams == 1 ? platformer::blocks::editor::types.at(i)->setPositionOnSpriteSheet({0, 1728, 64, 64}) : platformer::blocks::editor::types.at(i)->setPositionOnSpriteSheet({64, 1728, 64, 64});
-                }
+                selectedBlock = *(platformer::blocks::editor::types.at(i));
                 break;
             }
         }
@@ -430,7 +412,7 @@ int main()
 
                                     if (cache.x == (xmin + (z * 64)) && cache.y == (ymin + (y * 64)))
                                     {
-                                        blockFound = platformer::blocks::editor::typeToChar(blocks.at(k).getType());
+                                        blockFound = blocks.at(k).getType();
                                         break;
                                     }
                                 }
@@ -532,33 +514,33 @@ int main()
                                 y++;
                                 x = 0;
                                 break;
-                            case ('M'):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::lava, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            case ('L'):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::laser, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            case ('B'):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brick, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            case ('D'):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::dirt, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            case ('G'):
+                            case (platformer::valuesOfBlocks::Grass):
                                 blocks.push_back(platformer::editorBlock(platformer::blocks::editor::grass, 64 * x, 9024 + (64 * y), 64, 64));
                                 x++;
                                 break;
-                            case ('P'):
-                            blocks.push_back(platformer::editorBlock(platformer::blocks::editor::portal, 64 * x, 9024 + (64 * y), 64, 64));
-                            x++;
-                            break;
-                            case ('S'):
+                            case (platformer::valuesOfBlocks::Dirt):
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::dirt, 64 * x, 9024 + (64 * y), 64, 64));
+                                x++;
+                                break;
+                            case (platformer::valuesOfBlocks::Brick):
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brick, 64 * x, 9024 + (64 * y), 64, 64));
+                                x++;
+                                break;
+                            case (platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset):
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::laser, 64 * x, 9024 + (64 * y), 64, 64));
+                                x++;
+                                break;
+                            case (platformer::valuesOfBlocks::Lava):
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::lava, 64 * x, 9024 + (64 * y), 64, 64));
+                                x++;
+                                break;
+                            case (platformer::valuesOfBlocks::PlayerSpawn):
                                 blocks.push_back(platformer::editorBlock(platformer::blocks::editor::playerSpawn, 64 * x, 9024 + (64 * y), 64, 64));
                                 blocks.at(blocks.size() - 1).setPosition(64 * x, 9024 + (64 * y));
+                                x++;
+                                break;
+                            case (platformer::valuesOfBlocks::Portal):
+                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::portal, 64 * x, 9024 + (64 * y), 64, 64));
                                 x++;
                                 break;
                             default:
@@ -570,7 +552,7 @@ int main()
                         viewPort.target = (blocks.at(rand() % blocks.size())).getPosition();
                         for (size_t i = 0; i < blocks.size(); i++)
                         {
-                            if (blocks.at(i).getType() == 4)
+                            if (blocks.at(i).getType() == platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset)
                             {
                                 blocks.at(i).computeRay(blocks);
                             }
@@ -579,7 +561,6 @@ int main()
                     else if (realBuffers.at(0) == "/showlasers")
                     {
                         drawLaserBeams = !drawLaserBeams;
-                        drawLaserBeams == 1 ? platformer::blocks::editor::types.at(6)->setPositionOnSpriteSheet({0, 1728, 64, 64}) : platformer::blocks::editor::types.at(6)->setPositionOnSpriteSheet({64, 1728, 64, 64});
                     }
                     else
                     {
