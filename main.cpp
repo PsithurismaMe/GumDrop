@@ -22,13 +22,11 @@ int main(int argc, char **argv)
     }
     platformer::blocks::init();
     platformer::ui::init();
+    platformer::music::init();
     std::vector<platformer::stationaryStaticBlock *> staticBlocks;
     std::vector<platformer::stationaryAnimatedBlock *> animatedBlocks;
     while (isRunning)
     {
-        // Init music
-        platformer::music::init();
-        PlayMusicStream(*platformer::music::activeMusic);
         // Warn the user that this multithreaded program may not run correctly on old systems.
         {
             unsigned int threads = std::thread::hardware_concurrency();
@@ -72,6 +70,7 @@ int main(int argc, char **argv)
         {
             i->setIterablePointer(&globalIterables[1]);
         }
+        PlayMusicStream(*platformer::music::activeMusic);
         while (isRunning)
         {
             platformer::music::update(animatedText, time);
@@ -161,10 +160,10 @@ int main(int argc, char **argv)
         {
             delete animatedBlocks.at(i);
         }
-        platformer::music::release();
         staticBlocks.clear();
         animatedBlocks.clear();
     }
+    platformer::music::release();
     UnloadTexture(spritesheet);
     UnloadImage(windowIcon);
     CloseAudioDevice();
