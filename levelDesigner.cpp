@@ -96,44 +96,6 @@ namespace platformer
                     return false;
                 }
             }
-            class animatedText
-            {
-            protected:
-                std::string content;
-                float timeToLive;
-                double creationTime;
-                Vector2 destination;
-
-            public:
-                animatedText()
-                {
-                }
-                // Sets the destination coordinates
-                void setDestination(float x, float y)
-                {
-                    destination.x = x;
-                    destination.y = y;
-                }
-                // Sets the string contents
-                void setContent(const char *cnt)
-                {
-                    content = cnt;
-                }
-                // Resets the timer
-                void revive(double timeOfBirth, float ttl)
-                {
-                    creationTime = timeOfBirth;
-                    timeToLive = ttl;
-                }
-                void draw(float &c, double time, float fontsize, Vector2 &resolution)
-                {
-                    if ((creationTime + timeToLive) > time)
-                    {
-                        DrawText(content.c_str(), (destination.x * resolution.x), (destination.y * resolution.y), fontsize * c, YELLOW);
-                    }
-                }
-            };
-
         }
     }
 }
@@ -143,7 +105,7 @@ int main()
     srand(time(nullptr));
     platformer::blocks::editor::init();
     platformer::editorBlock selectedBlock = platformer::blocks::editor::brick;
-    platformer::blocks::editor::animatedText animatedText;
+    platformer::animatedText animatedText;
     std::vector<platformer::editorBlock> blocks;
     Vector2 resolution{800, 400};
     Vector2 mousePosition;

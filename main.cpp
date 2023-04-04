@@ -7,6 +7,7 @@ int main(int argc, char **argv)
     Color background;
     Vector2 resolution = {800, 400};
     InitWindow(resolution.x, resolution.y, "A Window");
+    InitAudioDevice();
     Texture2D spritesheet = LoadTexture("assets/tilesheet.png");
     Image windowIcon = LoadImage("assets/icon.png");
     SetExitKey(-1);
@@ -25,6 +26,9 @@ int main(int argc, char **argv)
     std::vector<platformer::stationaryAnimatedBlock *> animatedBlocks;
     while (isRunning)
     {
+        // Init music
+        platformer::music::init();
+        PlayMusicStream(*platformer::music::activeMusic);
         // Warn the user that this multithreaded program may not run correctly on old systems.
         {
             unsigned int threads = std::thread::hardware_concurrency();
@@ -35,6 +39,7 @@ int main(int argc, char **argv)
         Vector2 mousePosition{0, 0};
         float hypotenuse{1.0f};
         float tickRate{1.0f / 60.0f};
+        double time {0};
         // These variables are used for animation
         size_t globalIterables[2] = {0, 0};
         bool workerStatus{1};
@@ -42,6 +47,10 @@ int main(int argc, char **argv)
         wchar_t keypress{0};
         platformer::console console;
         platformer::player player = platformer::blocks::templatePlayer;
+        platformer::animatedText animatedText;
+        animatedText.setDestination(0.1f, 0.7f);
+        animatedText.setContent(platformer::music::playlist.at(platformer::music::currentlyPlayingIndex).Title.c_str());
+        animatedText.revive(time, 10);
         // Used for animation
         player.setIterablePointer(&globalIterables[1]);
         // Used to optimize collision checking and drawing
@@ -58,13 +67,15 @@ int main(int argc, char **argv)
                                 });
         std::thread everyOneSec(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[0]), std::ref(workerStatus), 1000);
         std::thread every100ms(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[1]), std::ref(workerStatus), 100);
-        std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses), std::ref(tickRate), std::ref(filename));
+        std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses), std::ref(tickRate), std::ref(filename), std::ref(animatedText), std::ref(time));
         for (auto i : animatedBlocks)
         {
             i->setIterablePointer(&globalIterables[1]);
         }
         while (isRunning)
         {
+            platformer::music::update(animatedText, time);
+            time = GetTime();
             isRunning = !WindowShouldClose();
             resolution.x = GetRenderWidth();
             resolution.y = GetRenderHeight();
@@ -107,7 +118,8 @@ int main(int argc, char **argv)
                 player.draw(spritesheet);
                 EndMode2D();
             }
-            if (console.draw(resolution, hypotenuse, keypress, filename) == -1)
+            animatedText.draw(hypotenuse, time, 0.01f, resolution);
+            if (console.draw(resolution, hypotenuse, keypress, filename, animatedText, time) == -1)
             {
                 break;
             }
@@ -134,6 +146,7 @@ int main(int argc, char **argv)
                 break;
             }
         }
+        StopMusicStream(*platformer::music::activeMusic);
         workerStatus = 0;
         every100ms.join();
         everyOneSec.join();
@@ -148,10 +161,12 @@ int main(int argc, char **argv)
         {
             delete animatedBlocks.at(i);
         }
+        platformer::music::release();
         staticBlocks.clear();
         animatedBlocks.clear();
     }
     UnloadTexture(spritesheet);
     UnloadImage(windowIcon);
+    CloseAudioDevice();
     CloseWindow();
 }

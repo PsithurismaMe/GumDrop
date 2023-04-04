@@ -18,3 +18,5 @@ Level Editor
 Platformer
 raylib/
 compression.cpp
+.savedata
+assets/music/Rush E (Hard).mp3

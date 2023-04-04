@@ -54,7 +54,7 @@ namespace platformer
                 std::this_thread::sleep_for(std::chrono::milliseconds(ms));
             }
         }
-        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> &staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> &animatedBlocks, player &pplayer, bool &workerStatus, std::vector<int> &activeKeypresses, float &tickRate, std::string &file)
+        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> &staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> &animatedBlocks, player &pplayer, bool &workerStatus, std::vector<int> &activeKeypresses, float &tickRate, std::string &file, platformer::animatedText & aniText, double & time)
         {
             while (workerStatus)
             {
@@ -88,6 +88,8 @@ namespace platformer
                 else
                 {
                     std::cerr << "WARN: SYSTEM: Physics thread cannot keep up! Physics will be innaccurate" << '\n';
+                    aniText.setContent("WARN: SYSTEM: Physics thread cannot keep up! Physics will be innaccurate");
+                    aniText.revive(time, 3);
                 }
             }
         }

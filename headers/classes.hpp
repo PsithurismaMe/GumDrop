@@ -9,6 +9,8 @@
 #include <sstream>
 #include <fstream>
 #include <functional>
+// Uncomment this directive if you want to use songs with incompatible licensing (See settings.hpp, line 22 for more information).
+//#define PLAYCOPYRIGHTEDMUSIC 1
 
 namespace platformer
 {
@@ -16,7 +18,7 @@ namespace platformer
     // No collidable should be deleted or added UNTIL ALL THREADS are done accessing it
 
     // When accessing a blocks type, use these enum values
-    // 
+    //
     enum valuesOfBlocks
     {
         Grass = 47,
@@ -27,7 +29,7 @@ namespace platformer
         PlayerSpawn,
         Portal,
     };
-    int writeCompressedData(std::stringstream & uncompressedString, const char * filename)
+    int writeCompressedData(std::stringstream &uncompressedString, const char *filename)
     {
         int returnVal = 0;
         std::fstream output(filename, std::ios::trunc | std::ios::out);
@@ -38,7 +40,7 @@ namespace platformer
         else
         {
             int outputSize;
-            unsigned char * compressedData = CompressData((const unsigned char *)uncompressedString.str().c_str(), sizeof(char) * (uncompressedString.str().length() - 1), &outputSize);
+            unsigned char *compressedData = CompressData((const unsigned char *)uncompressedString.str().c_str(), sizeof(char) * (uncompressedString.str().length() - 1), &outputSize);
             output.write((const char *)compressedData, outputSize);
             output.close();
             MemFree(compressedData);
@@ -46,12 +48,49 @@ namespace platformer
         }
         return returnVal;
     }
-    std::stringstream readCompressedData(const char * filename)
+    class animatedText
+    {
+    protected:
+        std::string content;
+        float timeToLive;
+        double creationTime;
+        Vector2 destination;
+
+    public:
+        animatedText()
+        {
+        }
+        // Sets the destination coordinates
+        void setDestination(float x, float y)
+        {
+            destination.x = x;
+            destination.y = y;
+        }
+        // Sets the string contents
+        void setContent(const char *cnt)
+        {
+            content = cnt;
+        }
+        // Resets the timer
+        void revive(double timeOfBirth, float ttl)
+        {
+            creationTime = timeOfBirth;
+            timeToLive = ttl;
+        }
+        void draw(float &c, double time, float fontsize, Vector2 &resolution)
+        {
+            if ((creationTime + timeToLive) > time)
+            {
+                DrawText(content.c_str(), (destination.x * resolution.x), (destination.y * resolution.y), fontsize * c, ORANGE);
+            }
+        }
+    };
+    std::stringstream readCompressedData(const char *filename)
     {
         std::string buffer;
         std::stringstream thingToReturn;
         int fileSize = GetFileLength(filename);
-        char * source = LoadFileText(filename);
+        char *source = LoadFileText(filename);
         if (source == nullptr)
         {
             return thingToReturn;
@@ -65,7 +104,7 @@ namespace platformer
                 buffer += source[i];
                 length = i;
             }
-            unsigned char * uncompressedData = DecompressData((const unsigned char *)source, fileSize, &dummy);
+            unsigned char *uncompressedData = DecompressData((const unsigned char *)source, fileSize, &dummy);
             thingToReturn << uncompressedData;
             MemFree(uncompressedData);
         }
@@ -79,7 +118,8 @@ namespace platformer
         bool collisionEnabled;
         int groupNumber;
         bool isVisibleToPlayer{0};
-        int rotation {0};
+        int rotation{0};
+
     public:
         int getRotation()
         {
@@ -265,7 +305,7 @@ namespace platformer
             if (iterable != nullptr)
             {
                 frameToDisplay = (*iterable % maximumFrames);
-                DrawTexturePro(spritesheet, {(frameToDisplay * pixelsToOffsetUponUpdate.x) + initialPositionOnSpriteSheet.x, (frameToDisplay * pixelsToOffsetUponUpdate.y) + initialPositionOnSpriteSheet.y, initialPositionOnSpriteSheet.width, initialPositionOnSpriteSheet.height}, inGamePositionDimension, {0, 0}, 0, WHITE);
+                DrawTexturePro(spritesheet, {(frameToDisplay * pixelsToOffsetUponUpdate.x) + initialPositionOnSpriteSheet.x, (frameToDisplay * pixelsToOffsetUponUpdate.y) + initialPositionOnSpriteSheet.y, initialPositionOnSpriteSheet.width, initialPositionOnSpriteSheet.height}, inGamePositionDimension, {0,0}, 0, WHITE);
             }
             else
             {
@@ -475,7 +515,7 @@ namespace platformer
                         o++;
                         file = std::to_string(o);
                         reloadLevel = 1;
-                        SaveFileText(".savedata", (char *) file.c_str());
+                        SaveFileText(".savedata", (char *)file.c_str());
                         break;
                     }
                 }
@@ -541,7 +581,7 @@ namespace platformer
         }
 
     public:
-        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string &filename)
+        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string &filename, platformer::animatedText & aniText, double & time)
         {
             int returnVal = 0;
             if (fpsIsVisible)
@@ -587,6 +627,7 @@ namespace platformer
                         if (arguments.at(0) == "/showfps")
                         {
                             fpsIsVisible = !fpsIsVisible;
+                            throw std::invalid_argument("FPS counter toggled.");
                         }
                         if (arguments.at(0) == "/load")
                         {
@@ -596,58 +637,47 @@ namespace platformer
                                 filename = arguments.at(1);
                                 return -1;
                             }
+                            else
+                            {
+                                throw std::invalid_argument("Level " + arguments.at(1) + " does not exist!");
+                            }
                         }
                         if (arguments.at(0) == "/fullscreen")
                         {
                             ToggleFullscreen();
+                            throw std::invalid_argument("Fullscreen toggled");
                         }
                         if (arguments.at(0) == "/reset")
                         {
                             if (arguments.at(1) == "savedata")
                             {
                                 remove(".savedata");
+                                throw std::invalid_argument("Deleted save data");
                             }
                             if (arguments.at(1) == "level")
                             {
                                 return -1;
                             }
                         }
-                        if (arguments.at(0) == "/generate" && arguments.size() > 2)
+                        if (arguments.at(0) == "/set")
                         {
-                            int x, y;
-                            x = std::stoi(arguments.at(1));
-                            y = std::stoi(arguments.at(2));
-                            std::string thingToOutput;
-                            std::string fileOut = "levels/";
-                            char blocks[] = ".LMBDG";
-                            thingToOutput += "0 0 0 255\n";
-                            for (int k = 0; k < y; k++)
+                            if (arguments.at(1) == "fps" && arguments.size() > 2)
                             {
-                                for (int a = 0; a < x; a++)
-                                {
-                                    thingToOutput += blocks[rand() % 6];
-                                }
-                                thingToOutput += '\n';
+                                SetTargetFPS(std::stoi(arguments.at(2)));
+                                throw std::invalid_argument("FPS capped to " + arguments.at(2) + "FPS");
                             }
-                            thingToOutput.pop_back();
-                            thingToOutput.at(rand() % thingToOutput.size() - 1) = 'S';
-                            std::string placeholder = std::to_string(rand());
-                            fileOut += placeholder;
-                            fileOut += ".lvl";
-                            SaveFileText(fileOut.c_str(), (char *)thingToOutput.c_str());
-                            filename = placeholder;
-                            filename += ".lvl";
-                            return -1;
                         }
                     }
                     catch (const std::exception &e)
                     {
                         std::cerr << e.what() << '\n';
+                        aniText.setContent(e.what());
+                        aniText.revive(time, 3);
                     }
                     toggleConsole();
                     cin.clear();
                 }
-                DrawText(cin.c_str(), (positionToStartDrawing.x * windowResolution.x), (positionToStartDrawing.y * windowResolution.y), hypotenuse * 0.01f, BLUE);
+                DrawText(cin.c_str(), (positionToStartDrawing.x * windowResolution.x), (positionToStartDrawing.y * windowResolution.y), hypotenuse * 0.01f, YELLOW);
             }
             return returnVal;
         }
@@ -703,5 +733,5 @@ namespace platformer
     {
         int currentLevel;
     };
-    
+
 }
