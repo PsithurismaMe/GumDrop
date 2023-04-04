@@ -7,6 +7,7 @@
 #include <string>
 #include <cmath>
 #include <sstream>
+#include <fstream>
 #include <functional>
 
 namespace platformer
@@ -26,7 +27,51 @@ namespace platformer
         PlayerSpawn,
         Portal,
     };
-
+    int writeCompressedData(std::stringstream & uncompressedString, const char * filename)
+    {
+        int returnVal = 0;
+        std::fstream output(filename, std::ios::trunc | std::ios::out);
+        if (!output.is_open())
+        {
+            returnVal = -1;
+        }
+        else
+        {
+            int outputSize;
+            unsigned char * compressedData = CompressData((const unsigned char *)uncompressedString.str().c_str(), sizeof(char) * (uncompressedString.str().length() - 1), &outputSize);
+            output.write((const char *)compressedData, outputSize);
+            output.close();
+            MemFree(compressedData);
+            returnVal = 0;
+        }
+        return returnVal;
+    }
+    std::stringstream readCompressedData(const char * filename)
+    {
+        std::string buffer;
+        std::stringstream thingToReturn;
+        int fileSize = GetFileLength(filename);
+        char * source = LoadFileText(filename);
+        if (source == nullptr)
+        {
+            return thingToReturn;
+        }
+        else
+        {
+            int length;
+            int dummy;
+            for (size_t i = 0; source[i] != '\0'; i++)
+            {
+                buffer += source[i];
+                length = i;
+            }
+            unsigned char * uncompressedData = DecompressData((const unsigned char *)source, fileSize, &dummy);
+            thingToReturn << uncompressedData;
+            MemFree(uncompressedData);
+        }
+        UnloadFileText(source);
+        return thingToReturn;
+    }
     class collidable
     {
     protected:
@@ -34,8 +79,16 @@ namespace platformer
         bool collisionEnabled;
         int groupNumber;
         bool isVisibleToPlayer{0};
-
+        int rotation {0};
     public:
+        int getRotation()
+        {
+            return rotation;
+        }
+        void setRotation(int deg)
+        {
+            rotation = deg;
+        }
         void setVisibility(bool val)
         {
             isVisibleToPlayer = val;

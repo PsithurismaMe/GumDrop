@@ -104,96 +104,68 @@ namespace platformer
         {
             if (FileExists(filename))
             {
-                char *readme = LoadFileText(filename);
-                int width;
-                // Get the width
-                for (width = 0; readme[width] != '\n' && readme[width] != '\0'; width++)
-                {
-                }
-                int x = 0;
-                int y = 0;
-                size_t i = 0;
+                std::stringstream source = platformer::readCompressedData(filename);
                 dest.clear();
                 aDest.clear();
                 {
-                    std::string buffer;
-                    std::vector<std::string> buffers;
-                    while (readme[i] != '\n' && readme[i] != '\0')
+                    std::string placeholder;
+                    std::getline(source, placeholder, '\n');
+                    std::stringstream iDontKnow(placeholder);
+                    std::vector<std::string> colors;
+                    while (std::getline(iDontKnow, placeholder, ' '))
                     {
-                        buffer += readme[i];
-                        i++;
+                        colors.push_back(placeholder);
                     }
-                    std::stringstream realBuffer(buffer);
-                    while (std::getline(realBuffer, buffer, ' '))
-                    {
-                        buffers.push_back(buffer);
-                    }
-                    if (buffers.size() != 4)
-                    {
-                        std::cerr << "Malformed level file. Unable to load." << '\n';
-                        UnloadFileText(readme);
-                        return;
-                    }
-                    else
-                    {
-                        backgroundColor.r = std::stoi(buffers.at(0));
-                        backgroundColor.g = std::stoi(buffers.at(1));
-                        backgroundColor.b = std::stoi(buffers.at(2));
-                        backgroundColor.a = std::stoi(buffers.at(3));
-                    }
+                    backgroundColor.r = std::stoi(colors.at(0));
+                    backgroundColor.g = std::stoi(colors.at(1));
+                    backgroundColor.b = std::stoi(colors.at(2));
+                    backgroundColor.a = std::stoi(colors.at(3));
                 }
-                i++;
-                for (; readme[i] != '\0'; i++)
+                std::string lineBuffer;
+                while (std::getline(source, lineBuffer, '\n'))
                 {
-                    switch (readme[i])
+                    std::vector<int> parsableArguments;
+                    std::stringstream iDontKnow(lineBuffer);
+                    while (std::getline(iDontKnow, lineBuffer, ' '))
                     {
-                    case ('.'):
-                        x++;
-                        break;
-                    case ('\n'):
-                        y++;
-                        x = 0;
-                        break;
-                    case (platformer::valuesOfBlocks::Grass):
-                        dest.push_back(new platformer::stationaryStaticBlock(grass, 64 * x, 64 * y, 64, 64));
-                        x++;
-                        break;
-                    case (platformer::valuesOfBlocks::Dirt):
-                        dest.push_back(new platformer::stationaryStaticBlock(dirt, 64 * x, 64 * y, 64, 64));
-                        x++;
-                        break;
-                    case (platformer::valuesOfBlocks::Brick):
-                        dest.push_back(new platformer::stationaryStaticBlock(brick, 64 * x, 64 * y, 64, 64));
-                        x++;
-                        break;
-                    case (platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset):
-                        aDest.push_back(new platformer::stationaryAnimatedBlock(laser, 64 * x, 64 * y, 64, 64, nullptr));
-                        x++;
-                        break;
-                    case (platformer::valuesOfBlocks::Lava):
-                        aDest.push_back(new platformer::stationaryAnimatedBlock(lava, 64 * x, 64 * y, 64, 64, nullptr));
-                        x++;
-                        break;
-                    case (platformer::valuesOfBlocks::PlayerSpawn):
-                        templatePlayer.setPosition(64 * x, 64 * y);
-                        templatePlayer.setInitialSpawnPosition(64 * x, 64 * y);
-                        templatePlayer.setCheckpoint(64 * x, 64 * y);
-                        x++;
-                        break;
-                    case (platformer::valuesOfBlocks::Portal):
-                        aDest.push_back(new platformer::stationaryAnimatedBlock(portal, 64 * x, 64 * y, 64, 64, nullptr));
-                        x++;
-                        break;
-                    default:
-                        x++;
-                        break;
+                        parsableArguments.push_back(std::stoi(lineBuffer));
+                    }
+                    if (parsableArguments.size() == 4)
+                    {
+                        switch (parsableArguments.at(2))
+                        {
+                        case (platformer::valuesOfBlocks::Grass):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::grass, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                            break;
+                        case (platformer::valuesOfBlocks::Dirt):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::dirt, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                            break;
+                        case (platformer::valuesOfBlocks::Brick):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brick, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                            break;
+                        case (platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset):
+                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::laser, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr));
+                            break;
+                        case (platformer::valuesOfBlocks::Lava):
+                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::lava, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr));
+                            break;
+                        case (platformer::valuesOfBlocks::PlayerSpawn):
+                            templatePlayer.setPosition(parsableArguments.at(0), parsableArguments.at(1));
+                            templatePlayer.setPosition(parsableArguments.at(0), parsableArguments.at(1));
+                            templatePlayer.setCheckpoint(parsableArguments.at(0), parsableArguments.at(1));
+                            break;
+                        case (platformer::valuesOfBlocks::Portal):
+                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::portal, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr));
+                            break;
+                        default:
+                            break;
+                        }
                     }
                 }
-                UnloadFileText(readme);
-                for (int i = 0; i < aDest.size(); i++)
-                {
-                    aDest.at(i)->computeRay(dest);
-                }
+            }
+            for (int i = 0; i < aDest.size(); i++)
+            {
+                aDest.at(i)->computeRay(dest);
             }
         }
     }

@@ -397,31 +397,19 @@ int main()
                         size_t xtotalNeededToAllocate = 1 + (((std::abs(xmin - xmax))) / 64);
                         size_t ytotalNeededToAllocate = 1 + (((std::abs(ymin - ymax))) / 64);
                         size_t total = (xtotalNeededToAllocate * ytotalNeededToAllocate);
+                        /*
                         std::sort(blocks.begin(), blocks.end(), [](platformer::editorBlock &lhs, platformer::editorBlock &rhs)
                                   { return (lhs.getPosition().y < rhs.getPosition().y) || ((lhs.getPosition().y == rhs.getPosition().y) && (lhs.getPosition().x < rhs.getPosition().x)); });
-                        std::string buf;
-                        buf += std::to_string(background.r) + ' ' + std::to_string(background.g) + ' ' + std::to_string(background.b) + ' ' + std::to_string(background.a) + '\n';
-                        for (long int y = 0; y < ytotalNeededToAllocate; y++)
+                        */
+                        std::stringstream buf;
+                        buf << (int)background.r << ' ' << (int)background.g << ' ' << (int)background.b << ' ' << (int)background.a << '\n';
+                        for (platformer::editorBlock &i : blocks)
                         {
-                            for (long int z = 0; z < xtotalNeededToAllocate; z++)
-                            {
-                                char blockFound{'.'};
-                                for (long int k = 0; k < blocks.size(); k++)
-                                {
-                                    Vector2 cache = blocks.at(k).getPosition();
-
-                                    if (cache.x == (xmin + (z * 64)) && cache.y == (ymin + (y * 64)))
-                                    {
-                                        blockFound = blocks.at(k).getType();
-                                        break;
-                                    }
-                                }
-                                buf += blockFound;
-                            }
-                            buf += '\n';
+                            Vector2 cache = i.getPosition();
+                            buf << cache.x << ' ' << cache.y << ' ' << i.getType() << ' ' << i.getRotation() << '\n';
                         }
                         realBuffers.at(1) = "levels/" + realBuffers.at(1);
-                        if (SaveFileText(realBuffers.at(1).c_str(), (char *)buf.c_str()) != 1)
+                        if (platformer::writeCompressedData(buf, realBuffers.at(1).c_str()) != 0)
                         {
                             animatedText.setContent("Failed to write file");
                             animatedText.setDestination(0.1f, 0.7f);
@@ -460,95 +448,62 @@ int main()
                     else if (realBuffers.at(0) == "/load")
                     {
                         realBuffers.at(1) = "levels/" + realBuffers.at(1);
-                        char *readme = LoadFileText(realBuffers.at(1).c_str());
-                        if (readme == nullptr)
-                        {
-                            throw std::invalid_argument("Level does not exist!");
-                            continue;
-                        }
-                        int width;
-                        // Get the width
-                        for (width = 0; readme[width] != '\n' && readme[width] != '\0'; width++)
-                        {
-                        }
-                        int x = 0;
-                        int y = 0;
-                        size_t i = 0;
+                        std::stringstream source = platformer::readCompressedData(realBuffers.at(1).c_str());
                         blocks.clear();
                         {
-                            std::string buffer;
-                            std::vector<std::string> buffers;
-                            while (readme[i] != '\n' && readme[i] != '\0')
+                            std::string placeholder;
+                            std::getline(source, placeholder, '\n');
+                            std::stringstream iDontKnow(placeholder);
+                            std::vector<std::string> colors;
+                            while (std::getline(iDontKnow, placeholder, ' '))
                             {
-                                buffer += readme[i];
-                                i++;
+                                colors.push_back(placeholder);
                             }
-                            std::stringstream realBuffer(buffer);
-                            while (std::getline(realBuffer, buffer, ' '))
-                            {
-                                buffers.push_back(buffer);
-                            }
-                            if (buffers.size() != 4)
-                            {
-                                UnloadFileText(readme);
-                                throw std::invalid_argument("Malformed level file. Unable to load.");
-                                continue;
-                            }
-                            else
-                            {
-                                background.r = std::stoi(buffers.at(0));
-                                background.g = std::stoi(buffers.at(1));
-                                background.b = std::stoi(buffers.at(2));
-                                background.a = std::stoi(buffers.at(3));
-                            }
+                            background.r = std::stoi(colors.at(0));
+                            background.g = std::stoi(colors.at(1));
+                            background.b = std::stoi(colors.at(2));
+                            background.a = std::stoi(colors.at(3));
                         }
-                        i++;
-                        for (; readme[i] != '\0'; i++)
+                        std::string lineBuffer;
+                        while (std::getline(source, lineBuffer, '\n'))
                         {
-                            switch (readme[i])
+                            std::vector<int> parsableArguments;
+                            std::stringstream iDontKnow(lineBuffer);
+                            while (std::getline(iDontKnow, lineBuffer, ' '))
                             {
-                            case ('.'):
-                                x++;
-                                break;
-                            case ('\n'):
-                                y++;
-                                x = 0;
-                                break;
-                            case (platformer::valuesOfBlocks::Grass):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::grass, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            case (platformer::valuesOfBlocks::Dirt):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::dirt, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            case (platformer::valuesOfBlocks::Brick):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brick, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            case (platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::laser, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            case (platformer::valuesOfBlocks::Lava):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::lava, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            case (platformer::valuesOfBlocks::PlayerSpawn):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::playerSpawn, 64 * x, 9024 + (64 * y), 64, 64));
-                                blocks.at(blocks.size() - 1).setPosition(64 * x, 9024 + (64 * y));
-                                x++;
-                                break;
-                            case (platformer::valuesOfBlocks::Portal):
-                                blocks.push_back(platformer::editorBlock(platformer::blocks::editor::portal, 64 * x, 9024 + (64 * y), 64, 64));
-                                x++;
-                                break;
-                            default:
-                                x++;
-                                break;
+                                parsableArguments.push_back(std::stoi(lineBuffer));
+                            }
+                            if (parsableArguments.size() == 4)
+                            {
+                                switch (parsableArguments.at(2))
+                                {
+                                case (platformer::valuesOfBlocks::Grass):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::grass, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                                    break;
+                                case (platformer::valuesOfBlocks::Dirt):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::dirt, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                                    break;
+                                case (platformer::valuesOfBlocks::Brick):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brick, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                                    break;
+                                case (platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::laser, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                                    break;
+                                case (platformer::valuesOfBlocks::Lava):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::lava, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                                    break;
+                                case (platformer::valuesOfBlocks::PlayerSpawn):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::playerSpawn, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                                    blocks.at(blocks.size() - 1).setPosition(parsableArguments.at(0), (parsableArguments.at(1)));
+                                    break;
+                                case (platformer::valuesOfBlocks::Portal):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::portal, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                                    break;
+                                default:
+                                    break;
+                                }
                             }
                         }
-                        UnloadFileText(readme);
                         viewPort.target = (blocks.at(rand() % blocks.size())).getPosition();
                         for (size_t i = 0; i < blocks.size(); i++)
                         {

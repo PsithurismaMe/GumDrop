@@ -16,3 +16,5 @@ game
 levelEditor
 Level Editor
 Platformer
+raylib/
+compression.cpp
