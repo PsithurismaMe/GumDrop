@@ -1,24 +1,11 @@
-/a.out
-/test.cpp
-finalRefactor
-.vscode/tasks.json
-LevelDump.raw
-assets/tilesheet.png~
 .gitignore
-.vscode/settings.json
-levels/10.level
-Script.odt
-main
-optimizatonStrategies
-script
-levelDesigner
-game
-levelEditor
-Level Editor
-Platformer
-raylib/
+assets/music/Rush E by Sheet Music Boss.mp3
+assets/music/Megalovania by Toby Fox.ogg
+assets/tilesheet.png~
+a.out
 compression.cpp
-.savedata
-assets/music/Rush E (Hard).mp3
-levels/69
+Level Editor
+optimizatonStrategies
+Platformer
+script
 levels/Level

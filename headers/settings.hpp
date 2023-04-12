@@ -22,26 +22,23 @@ namespace platformer
             /*
 
             NOTICE: Some songs have been excluded from this git repository due to incompatible licensing.
-            If you wish to use Rush E by Sheet Music Boss, AT YOUR OWN RISK DO THE FOLLOWING,
+            If you wish to use other music, AT YOUR OWN RISK DO THE FOLLOWING,
 
-            1. Obtain Rush E in a .mp3 format
-            2. Rename it to "Rush E (Hard).mp3" and place it in assets/music/
-            3. Uncomment the PLAYCOPYRIGHTEDMUSIC directive in classes.hpp
-            4. Compile the game AND DO NOT COMMIT ANY MUSIC INCOMPATIBLE WITH GPL-V3
-
-
+            1. Obtain a DRM free copy of the music and transcode it if nesessary to a codec supported by the [raudio raylib module](https://github.com/raysan5/raylib/blob/master/src/raudio.c)
+            2. Place it in assets/music/
+            3. (OPTIONAL) Rename the file to match the pattern, "<Music Title> by <Artist>.something"
+            4. Run the game. It will automatically load any music present in the assets/music/ directory
+            5. DO NOT COMMIT MUSIC INCOMPATIBLE WITH THE GPL-V3
             */
-            playlist.push_back(song());
-            playlist.at(0).music = LoadMusicStream("assets/music/Arpent.mp3");
-            playlist.at(0).Title = "Now Playing: Arpent by Kevin MacLeod.";
-            playlist.push_back(song());
-            playlist.at(1).music = LoadMusicStream("assets/music/Bit Bit Loop.mp3");
-            playlist.at(1).Title = "Now Playing: Bit Bit Loop by Kevin MacLeod.";
-            #ifdef PLAYCOPYRIGHTEDMUSIC
-            playlist.push_back(song());
-            playlist.at(2).music = LoadMusicStream("assets/music/Rush E (Hard).mp3");
-            playlist.at(2).Title = "Now Playing: Rush E by Sheet Music Boss.";
-            #endif
+            FilePathList musicInDirectory = LoadDirectoryFiles("assets/music/");
+            for (int i = 0; i < musicInDirectory.count; i++)
+            {
+                std::string placeholder(musicInDirectory.paths[i]);
+                playlist.push_back(song());
+                playlist.at(playlist.size() - 1).music = LoadMusicStream(placeholder.c_str());
+                playlist.at(playlist.size() - 1).Title = "Now Playing: " + placeholder.substr(14);
+            }
+            UnloadDirectoryFiles(musicInDirectory);
             for (song & i : playlist)
             {
                 i.music.looping = 0;

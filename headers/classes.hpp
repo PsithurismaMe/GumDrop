@@ -9,8 +9,6 @@
 #include <sstream>
 #include <fstream>
 #include <functional>
-// Uncomment this directive if you want to use songs with incompatible licensing (See settings.hpp, line 22 for more information).
-//#define PLAYCOPYRIGHTEDMUSIC 1
 
 namespace platformer
 {

@@ -13,3 +13,4 @@
 - [X] Reimplement collision checking
 - [X] Reimplement player drawing
 - [ ] Fix bug with level compression
+- [ ] Get rotation to work correctly
