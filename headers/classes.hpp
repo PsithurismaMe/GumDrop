@@ -72,7 +72,7 @@ namespace platformer
         {
             content = cnt;
         }
-        // Resets the timer
+        // Resets the timer. Time to live is in seconds
         void revive(double timeOfBirth, float ttl)
         {
             creationTime = timeOfBirth;
