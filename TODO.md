@@ -12,3 +12,4 @@
 - [ ] Create levels that are appropriate for the storyline
 - [X] Reimplement collision checking
 - [X] Reimplement player drawing
+- [ ] Fix bug with level compression

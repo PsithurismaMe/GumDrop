@@ -106,7 +106,8 @@ namespace platformer
         {
             if (FileExists(filename))
             {
-                std::stringstream source = platformer::readCompressedData(filename);
+                //std::stringstream source = platformer::readCompressedData(filename);
+                std::ifstream source(filename, std::ios::in);
                 dest.clear();
                 aDest.clear();
                 {
@@ -163,12 +164,15 @@ namespace platformer
                             break;
                         }
                     }
+                    
                 }
+                source.close();
             }
             for (int i = 0; i < aDest.size(); i++)
             {
                 aDest.at(i)->computeRay(dest);
             }
+
         }
     }
 }

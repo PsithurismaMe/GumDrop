@@ -371,7 +371,12 @@ int main()
                             buf << cache.x << ' ' << cache.y << ' ' << i.getType() << ' ' << i.getRotation() << '\n';
                         }
                         realBuffers.at(1) = "levels/" + realBuffers.at(1);
-                        if (platformer::writeCompressedData(buf, realBuffers.at(1).c_str()) != 0)
+                        //std::cout << buf.str() << '\n';
+                        std::fstream output(realBuffers.at(1), std::ios::out | std::ios::trunc);
+                        output << buf.str();
+                        output.close();
+
+                        if (0)
                         {
                             animatedText.setContent("Failed to write file");
                             animatedText.setDestination(0.1f, 0.7f);
@@ -410,7 +415,9 @@ int main()
                     else if (realBuffers.at(0) == "/load")
                     {
                         realBuffers.at(1) = "levels/" + realBuffers.at(1);
-                        std::stringstream source = platformer::readCompressedData(realBuffers.at(1).c_str());
+                        //std::stringstream source = platformer::readCompressedData(realBuffers.at(1).c_str());
+                        // For whatever reason, there is a bug with how data is compressed. For now every level will be uncompressed until this is fixed
+                        std::ifstream source(realBuffers.at(1), std::ios::in);
                         blocks.clear();
                         {
                             std::string placeholder;
@@ -474,6 +481,7 @@ int main()
                                 blocks.at(i).computeRay(blocks);
                             }
                         }
+                        source.close();
                     }
                     else if (realBuffers.at(0) == "/showlasers")
                     {

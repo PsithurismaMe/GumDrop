@@ -29,6 +29,7 @@ namespace platformer
         PlayerSpawn,
         Portal,
     };
+    // This function is bugged. Do not use
     int writeCompressedData(std::stringstream &uncompressedString, const char *filename)
     {
         int returnVal = 0;
@@ -40,7 +41,7 @@ namespace platformer
         else
         {
             int outputSize;
-            unsigned char *compressedData = CompressData((const unsigned char *)uncompressedString.str().c_str(), sizeof(char) * (uncompressedString.str().length() - 1), &outputSize);
+            unsigned char *compressedData = CompressData((const unsigned char *)uncompressedString.str().c_str(), sizeof(unsigned char) * (uncompressedString.str().length() - 1), &outputSize);
             output.write((const char *)compressedData, outputSize);
             output.close();
             MemFree(compressedData);
@@ -85,6 +86,7 @@ namespace platformer
             }
         }
     };
+    // This function is bugged. Do not use
     std::stringstream readCompressedData(const char *filename)
     {
         std::string buffer;
