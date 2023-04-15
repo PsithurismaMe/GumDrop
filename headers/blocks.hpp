@@ -35,7 +35,7 @@ namespace platformer
             grass.setType(valuesOfBlocks::Grass);
             dirt.setType(valuesOfBlocks::Dirt);
             brick.setType(valuesOfBlocks::Brick);
-            laser.setType(valuesOfBlocks::LaserFacingRightNoTimeOffset);
+            laser.setType(valuesOfBlocks::LaserNoTimeOffset);
             lava.setType(valuesOfBlocks::Lava);
             portal.setType(valuesOfBlocks::Portal);
             templatePlayer.setInitialPositionOnSpriteSheet({0, 1984, 64, 64});
@@ -138,19 +138,19 @@ namespace platformer
                         switch (parsableArguments.at(2))
                         {
                         case (platformer::valuesOfBlocks::Grass):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::grass, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::grass, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::Dirt):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::dirt, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::dirt, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::Brick):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brick, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64));
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brick, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
                             break;
-                        case (platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset):
-                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::laser, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr));
+                        case (platformer::valuesOfBlocks::LaserNoTimeOffset):
+                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::laser, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::Lava):
-                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::lava, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr));
+                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::lava, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::PlayerSpawn):
                             templatePlayer.setPosition(parsableArguments.at(0), parsableArguments.at(1));
@@ -158,7 +158,7 @@ namespace platformer
                             templatePlayer.setCheckpoint(parsableArguments.at(0), parsableArguments.at(1));
                             break;
                         case (platformer::valuesOfBlocks::Portal):
-                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::portal, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr));
+                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::portal, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
                             break;
                         default:
                             break;

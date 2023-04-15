@@ -16,17 +16,23 @@ namespace platformer
     // No collidable should be deleted or added UNTIL ALL THREADS are done accessing it
 
     // When accessing a blocks type, use these enum values
-    //
     enum valuesOfBlocks
     {
         Grass = 47,
         Dirt,
         Brick,
-        LaserFacingRightNoTimeOffset,
+        LaserNoTimeOffset,
         Lava,
         PlayerSpawn,
         Portal,
     };
+    Vector2 rotatePointAroundOtherPoint(Vector2 origionalPoint, Vector2 pointToRotateAround, float degreesToRotate)
+    {
+        Vector2 transformedPoint;
+        transformedPoint.x = ((std::cos(degreesToRotate * PI / 180.0f) * (origionalPoint.x - pointToRotateAround.x)) + ((-1.0f * std::sin(degreesToRotate * PI / 180.0f)) * (origionalPoint.y - pointToRotateAround.y))) + pointToRotateAround.x;
+        transformedPoint.y = (std::sin(degreesToRotate * PI / 180.0f) * (origionalPoint.x - pointToRotateAround.x)) + (std::cos(degreesToRotate * PI / 180.0f) * (origionalPoint.y - pointToRotateAround.y)) + pointToRotateAround.y;
+        return transformedPoint;
+    }
     // This function is bugged. Do not use
     int writeCompressedData(std::stringstream &uncompressedString, const char *filename)
     {
@@ -209,18 +215,19 @@ namespace platformer
         // Draws this object to the screen
         void draw(Texture2D &spritesheet)
         {
-            DrawTexturePro(spritesheet, positionOnSpriteSheet, inGamePositionDimension, {0, 0}, 0, WHITE);
+            DrawTexturePro(spritesheet, positionOnSpriteSheet, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, WHITE);
         }
         stationaryStaticBlock()
         {
         }
-        stationaryStaticBlock(stationaryStaticBlock &whereToInherit, int globalx, int globaly, int wid, int hgt)
+        stationaryStaticBlock(stationaryStaticBlock &whereToInherit, int globalx, int globaly, int wid, int hgt, int rot)
         {
             (*this) = whereToInherit;
             inGamePositionDimension.x = globalx;
             inGamePositionDimension.y = globaly;
             inGamePositionDimension.width = wid;
             inGamePositionDimension.height = hgt;
+            rotation = rot;
         }
         void setType(int t)
         {
@@ -241,31 +248,53 @@ namespace platformer
         size_t *iterable = nullptr;
         int type;
         int rayLength{0};
+        Vector2 beginOfRay;
+        Vector2 endOfRay;
 
     public:
-        // Computes the max distance a laser beam will travel. Gives up if it exceeds 4000 pixels
+        // Computes the max distance a laser beam will travel. Gives up if it exceeds 4096 pixels
         void computeRay(std::vector<stationaryStaticBlock *> obstecules)
         {
-            bool hasCollided{0};
-            for (size_t k = 0; k < 4000 && !hasCollided; k += 64)
+            Vector2 origion;
+            int lowest{4096};
+            int halfSpriteWidth = inGamePositionDimension.width / 2;
+            Vector2 p1 {inGamePositionDimension.x + halfSpriteWidth, inGamePositionDimension.y + halfSpriteWidth};
+            Vector2 p2 {inGamePositionDimension.x + lowest, inGamePositionDimension.y + halfSpriteWidth};
+            origion.x = inGamePositionDimension.x + halfSpriteWidth;
+            origion.y = inGamePositionDimension.y + halfSpriteWidth;
+            p1 = platformer::rotatePointAroundOtherPoint(p1, origion, rotation);
+            p2 = platformer::rotatePointAroundOtherPoint(p2, origion, rotation);
+            beginOfRay = p1;
+            endOfRay = p2;
+            for (size_t i = 0; i < obstecules.size(); i++)
             {
-                for (size_t i = 0; i < obstecules.size(); i++)
+                Vector2 cache = obstecules.at(i)->getPosition();
+                cache.x += halfSpriteWidth;
+                cache.y += halfSpriteWidth;
+                if (CheckCollisionPointLine(cache, p1, p2, halfSpriteWidth + 1))
                 {
-                    Vector2 placeholder = {inGamePositionDimension.x, inGamePositionDimension.y};
-                    if (CheckCollisionPointRec({placeholder.x + 64 + k, placeholder.y + 32}, obstecules.at(i)->getRectangle()))
+                    float placeholder = sqrt(pow((cache.x) - p1.x, 2) + pow((cache.y) - p1.y, 2));
+                    if (placeholder < lowest)
                     {
-                        hasCollided = 1;
-                        rayLength = k;
-                        break;
+                        lowest = placeholder;
+                        endOfRay = cache;
                     }
                 }
-                rayLength = k;
             }
+            rayLength = lowest;
         }
         // Returns the distance a laser beam will travel. This should be 0 for anything else
         int getRayLength()
         {
             return rayLength;
+        }
+        Vector2 getRayBegin()
+        {
+            return beginOfRay;
+        }
+        Vector2 getRayEnd()
+        {
+            return endOfRay;
         }
         // Sets the initial position of spritesheet.png to use as a texture
         void setInitialPositionOnSpriteSheet(Rectangle rect)
@@ -305,7 +334,7 @@ namespace platformer
             if (iterable != nullptr)
             {
                 frameToDisplay = (*iterable % maximumFrames);
-                DrawTexturePro(spritesheet, {(frameToDisplay * pixelsToOffsetUponUpdate.x) + initialPositionOnSpriteSheet.x, (frameToDisplay * pixelsToOffsetUponUpdate.y) + initialPositionOnSpriteSheet.y, initialPositionOnSpriteSheet.width, initialPositionOnSpriteSheet.height}, inGamePositionDimension, {0,0}, 0, WHITE);
+                DrawTexturePro(spritesheet, {(frameToDisplay * pixelsToOffsetUponUpdate.x) + initialPositionOnSpriteSheet.x, (frameToDisplay * pixelsToOffsetUponUpdate.y) + initialPositionOnSpriteSheet.y, initialPositionOnSpriteSheet.width, initialPositionOnSpriteSheet.height}, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, WHITE);
             }
             else
             {
@@ -315,7 +344,7 @@ namespace platformer
         stationaryAnimatedBlock()
         {
         }
-        stationaryAnimatedBlock(stationaryAnimatedBlock &whereToInherit, int globalx, int globaly, int wid, int hgt, size_t *i)
+        stationaryAnimatedBlock(stationaryAnimatedBlock &whereToInherit, int globalx, int globaly, int wid, int hgt, size_t *i, int rot)
         {
             (*this) = whereToInherit;
             inGamePositionDimension.x = globalx;
@@ -323,6 +352,7 @@ namespace platformer
             inGamePositionDimension.width = wid;
             inGamePositionDimension.height = hgt;
             iterable = i;
+            rotation = rot;
         }
         void setType(int t)
         {
@@ -485,10 +515,10 @@ namespace platformer
             }
             for (int i = 0; i < animatedBlocks.size(); i++)
             {
-                if (animatedBlocks.at(i)->getType() == valuesOfBlocks::LaserFacingRightNoTimeOffset && animatedBlocks.at(i)->getFrameDisplayed() == 1)
+                if (animatedBlocks.at(i)->getType() == valuesOfBlocks::LaserNoTimeOffset && animatedBlocks.at(i)->getFrameDisplayed() == 1)
                 {
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
-                    deadlyWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 64, cache.y + 19, (float)animatedBlocks.at(i)->getRayLength(), 28});
+                    deadlyWillCollide = CheckCollisionPointLine({getPredictedPosition(frameDelta, 1, 1).x + 32, getPredictedPosition(frameDelta, 1, 1).y}, animatedBlocks.at(i)->getRayBegin(), animatedBlocks.at(i)->getRayEnd(), 5);
                     if (deadlyWillCollide)
                     {
                         inGamePositionDimension.x = checkpoint.x;

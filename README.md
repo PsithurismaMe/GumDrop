@@ -59,6 +59,7 @@ If you want to compile this on Windows, Have fun.
 | Place block | Left Click |
 | Destroy block | Right Click |
 | Choose block | Click the desired block on the left menu |
+| Change default rotation | R |
 | Save level * | `/saveas <level name>` |
 | Load level * | `/load <level name>` |
 | Set level background color * | `/set background <r> <g> <b>` |

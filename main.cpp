@@ -94,11 +94,10 @@ int main(int argc, char **argv)
                 // Draw laser beams
                 for (int i = 0; i < animatedBlocks.size(); i++)
                 {
-                    if (animatedBlocks.at(i)->getType() == platformer::valuesOfBlocks::LaserFacingRightNoTimeOffset && animatedBlocks.at(i)->getFrameDisplayed() == 1)
+                    if (animatedBlocks.at(i)->getType() == platformer::valuesOfBlocks::LaserNoTimeOffset && animatedBlocks.at(i)->getFrameDisplayed() == 1)
                     {
                         animatedBlocks.at(i)->setIterablePointer(&globalIterables[0]);
-                        Vector2 source = animatedBlocks.at(i)->getPosition();
-                        DrawRectangle(source.x + 64, source.y + 19, animatedBlocks.at(i)->getRayLength(), 28, {0, 255, 0, 255});
+                        DrawLineEx(animatedBlocks.at(i)->getRayBegin(), animatedBlocks.at(i)->getRayEnd(), 28, {0, 255, 0, 255});
                     }
                 }
                 // Draw regular blocks
