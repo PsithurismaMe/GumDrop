@@ -23,6 +23,7 @@ int main(int argc, char **argv)
     platformer::blocks::init();
     platformer::ui::init();
     platformer::music::init();
+    PlayMusicStream(*platformer::music::activeMusic);
     std::vector<platformer::stationaryStaticBlock *> staticBlocks;
     std::vector<platformer::stationaryAnimatedBlock *> animatedBlocks;
     while (isRunning)
@@ -59,8 +60,24 @@ int main(int argc, char **argv)
                                     for (size_t i = 0; i < staticBlocks.size(); i++)
                                     {
                                         Vector2 cache = GetWorldToScreen2D(staticBlocks.at(i)->getPosition(), platformer::blocks::inGameCamera);
-                                        (cache.x < resolution.x && cache.x > -64 && cache.y < resolution.y && cache.y > -64) ? staticBlocks.at(i)->setVisibility(1) : staticBlocks.at(i)->setVisibility(0);
+                                        if (cache.x < resolution.x && cache.x > -64 && cache.y < resolution.y && cache.y > -64)
+                                        {
+                                            staticBlocks.at(i)->setVisibility(1);
+                                            //float distance = sqrt((pow((staticBlocks.at(i)->getPosition().x - platformer::blocks::inGameCamera.target.x), 2) + pow((staticBlocks.at(i)->getPosition().y - platformer::blocks::inGameCamera.target.y), 2)));
+                                            //staticBlocks.at(i)->setAlpha(((int)(16000.0f/distance)) % 255);
+                                        }
+                                        else
+                                        {
+                                            staticBlocks.at(i)->setVisibility(0);
+                                        }
                                     }
+                                    /*
+                                    for (size_t i = 0; i < animatedBlocks.size(); i++)
+                                    {
+                                        float distance = sqrt((pow((animatedBlocks.at(i)->getPosition().x - platformer::blocks::inGameCamera.target.x), 2) + pow((animatedBlocks.at(i)->getPosition().y - platformer::blocks::inGameCamera.target.y), 2)));
+                                        animatedBlocks.at(i)->setAlpha(((int)(16000.0f/distance)) % 255);
+                                    }
+                                    */
                                 }           
                                 });
         std::thread everyOneSec(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[0]), std::ref(workerStatus), 1000);
@@ -70,7 +87,6 @@ int main(int argc, char **argv)
         {
             i->setIterablePointer(&globalIterables[1]);
         }
-        PlayMusicStream(*platformer::music::activeMusic);
         while (isRunning)
         {
             platformer::music::update(animatedText, time);
@@ -144,7 +160,7 @@ int main(int argc, char **argv)
                 break;
             }
         }
-        StopMusicStream(*platformer::music::activeMusic);
+        
         workerStatus = 0;
         every100ms.join();
         everyOneSec.join();
@@ -162,6 +178,7 @@ int main(int argc, char **argv)
         staticBlocks.clear();
         animatedBlocks.clear();
     }
+    StopMusicStream(*platformer::music::activeMusic);
     platformer::music::release();
     UnloadTexture(spritesheet);
     UnloadImage(windowIcon);

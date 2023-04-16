@@ -200,8 +200,16 @@ namespace platformer
     protected:
         Rectangle positionOnSpriteSheet;
         int type;
-
+        int alpha {255};
     public:
+        void setAlpha(int ahla)
+        {
+            alpha = ahla;
+        }
+        int getAlpha()
+        {
+            return alpha;
+        }
         // Sets the portion of spritesheet.png to use as a texture
         void setPositionOnSpriteSheet(Rectangle rect)
         {
@@ -215,7 +223,7 @@ namespace platformer
         // Draws this object to the screen
         void draw(Texture2D &spritesheet)
         {
-            DrawTexturePro(spritesheet, positionOnSpriteSheet, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, WHITE);
+            DrawTexturePro(spritesheet, positionOnSpriteSheet, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, {255, 255, 255, (unsigned char) alpha});
         }
         stationaryStaticBlock()
         {
@@ -250,7 +258,7 @@ namespace platformer
         int rayLength{0};
         Vector2 beginOfRay;
         Vector2 endOfRay;
-
+        int alpha {255};
     public:
         // Computes the max distance a laser beam will travel. Gives up if it exceeds 4096 pixels
         void computeRay(std::vector<stationaryStaticBlock *> obstecules)
@@ -282,6 +290,14 @@ namespace platformer
                 }
             }
             rayLength = lowest;
+        }
+        void setAlpha(int ahla)
+        {
+            alpha = ahla;
+        }
+        int getAlpha()
+        {
+            return alpha;
         }
         // Returns the distance a laser beam will travel. This should be 0 for anything else
         int getRayLength()
@@ -334,7 +350,7 @@ namespace platformer
             if (iterable != nullptr)
             {
                 frameToDisplay = (*iterable % maximumFrames);
-                DrawTexturePro(spritesheet, {(frameToDisplay * pixelsToOffsetUponUpdate.x) + initialPositionOnSpriteSheet.x, (frameToDisplay * pixelsToOffsetUponUpdate.y) + initialPositionOnSpriteSheet.y, initialPositionOnSpriteSheet.width, initialPositionOnSpriteSheet.height}, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, WHITE);
+                DrawTexturePro(spritesheet, {(frameToDisplay * pixelsToOffsetUponUpdate.x) + initialPositionOnSpriteSheet.x, (frameToDisplay * pixelsToOffsetUponUpdate.y) + initialPositionOnSpriteSheet.y, initialPositionOnSpriteSheet.width, initialPositionOnSpriteSheet.height}, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, {255, 255, 255, (unsigned char) alpha});
             }
             else
             {
@@ -366,6 +382,7 @@ namespace platformer
     class npc : public stationaryAnimatedBlock
     {
     protected:
+        
     };
     class player : public stationaryAnimatedBlock
     {
@@ -382,8 +399,12 @@ namespace platformer
         int isMoving{0};
         Vector2 playerDesiredMovement;
         bool reloadLevel{0};
-
+        size_t deathCount {0};
     public:
+        size_t getDeathCount()
+        {
+            return deathCount;
+        }
         void setReloadStatus(bool s)
         {
             reloadLevel = s;
@@ -450,7 +471,7 @@ namespace platformer
             // This is slightly smaller than the actual sprite because floating point approximation limitations
             return {(inGamePositionDimension.x) + (velocity.x * timeDelta * xAxisOverride), (inGamePositionDimension.y + 23) + (velocity.y * timeDelta * yAxisOverride), 63, 41};
         }
-        void doPhysicsStep(std::vector<stationaryStaticBlock *> &staticBlocks, std::vector<stationaryAnimatedBlock *> &animatedBlocks, float frameDelta, std::string &file)
+        void doPhysicsStep(std::vector<stationaryStaticBlock *> &staticBlocks, std::vector<stationaryAnimatedBlock *> &animatedBlocks, float frameDelta, std::string &file, platformer::animatedText & aniText)
         {
             velocity.y += 1 * dragCoefficent.y * frameDelta;
             velocity.x > 0 ? velocity.x -= 1 *dragCoefficent.x *frameDelta : velocity.x += 1 * dragCoefficent.x * frameDelta;
@@ -518,9 +539,12 @@ namespace platformer
                 if (animatedBlocks.at(i)->getType() == valuesOfBlocks::LaserNoTimeOffset && animatedBlocks.at(i)->getFrameDisplayed() == 1)
                 {
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
-                    deadlyWillCollide = CheckCollisionPointLine({getPredictedPosition(frameDelta, 1, 1).x + 32, getPredictedPosition(frameDelta, 1, 1).y}, animatedBlocks.at(i)->getRayBegin(), animatedBlocks.at(i)->getRayEnd(), 5);
+                    deadlyWillCollide = CheckCollisionPointLine({getPredictedPosition(frameDelta, 1, 1).x + 32, getPredictedPosition(frameDelta, 1, 1).y}, animatedBlocks.at(i)->getRayBegin(), animatedBlocks.at(i)->getRayEnd(), 32);
                     if (deadlyWillCollide)
                     {
+                        deathCount++;
+                        aniText.setContent(TextFormat("%d Lives wasted", (int) deathCount));
+                        aniText.revive(GetTime(), 5);
                         inGamePositionDimension.x = checkpoint.x;
                         inGamePositionDimension.y = checkpoint.y;
                         break;
@@ -531,6 +555,9 @@ namespace platformer
                     Rectangle cache = animatedBlocks.at(i)->getRectangle();
                     if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
                     {
+                        deathCount++;
+                        aniText.setContent(TextFormat("%d Lives wasted", (int) deathCount));
+                        aniText.revive(GetTime(), 5);
                         inGamePositionDimension.x = checkpoint.x;
                         inGamePositionDimension.y = checkpoint.y;
                         break;
@@ -695,6 +722,11 @@ namespace platformer
                             {
                                 SetTargetFPS(std::stoi(arguments.at(2)));
                                 throw std::invalid_argument("FPS capped to " + arguments.at(2) + "FPS");
+                            }
+                            if (arguments.at(1) == "volume" && arguments.size() > 2)
+                            {
+                                SetMasterVolume(std::stof(arguments.at(2)));
+                                throw std::invalid_argument("Set Volume to " + arguments.at(2));
                             }
                         }
                     }

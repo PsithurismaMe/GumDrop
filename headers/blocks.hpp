@@ -59,7 +59,7 @@ namespace platformer
             while (workerStatus)
             {
                 std::chrono::_V2::system_clock::time_point estimatedCompletionTime = std::chrono::system_clock::now() + std::chrono::milliseconds(16);
-                pplayer.doPhysicsStep(staticBlocks, animatedBlocks, tickRate, file);
+                pplayer.doPhysicsStep(staticBlocks, animatedBlocks, tickRate, file, aniText);
                 if (activeKeypresses[0])
                 {
                     pplayer.incrementDesiredMovement(pplayer.getSpeed(), 0);

@@ -1,6 +1,5 @@
 .gitignore
-assets/music/Rush E by Sheet Music Boss.mp3
-assets/music/Megalovania by Toby Fox.ogg
+assets/music/
 assets/tilesheet.png~
 a.out
 compression.cpp
@@ -9,3 +8,7 @@ optimizatonStrategies
 Platformer
 script
 levels/Level
+assets/tilesheetSpecial.png
+assets/tilesheet.kra
+.gitignore
+assets/tilesheet.kra~
