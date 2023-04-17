@@ -9,6 +9,7 @@ namespace platformer
         Vector2 beginOfRay;
         Vector2 endOfRay;
         float rayLength;
+
     public:
         float getRayLength()
         {
@@ -24,7 +25,6 @@ namespace platformer
         }
         editorBlock()
         {
-
         }
         editorBlock(editorBlock &whereToInherit, int globalx, int globaly, int wid, int hgt, int rot)
         {
@@ -40,8 +40,8 @@ namespace platformer
             Vector2 origion;
             int lowest{4096};
             int halfSpriteWidth = inGamePositionDimension.width / 2;
-            Vector2 p1 {inGamePositionDimension.x + halfSpriteWidth, inGamePositionDimension.y + halfSpriteWidth};
-            Vector2 p2 {inGamePositionDimension.x + lowest, inGamePositionDimension.y + halfSpriteWidth};
+            Vector2 p1{inGamePositionDimension.x + halfSpriteWidth, inGamePositionDimension.y + halfSpriteWidth};
+            Vector2 p2{inGamePositionDimension.x + lowest, inGamePositionDimension.y + halfSpriteWidth};
             origion.x = inGamePositionDimension.x + halfSpriteWidth;
             origion.y = inGamePositionDimension.y + halfSpriteWidth;
             p1 = platformer::rotatePointAroundOtherPoint(p1, origion, rotation);
@@ -80,7 +80,16 @@ namespace platformer
             editorBlock lava;
             editorBlock playerSpawn;
             editorBlock portal;
-
+            editorBlock brickR;
+            editorBlock brickO;
+            editorBlock brickY;
+            editorBlock brickG;
+            editorBlock brickB;
+            editorBlock brickP;
+            editorBlock brickW;
+            editorBlock accessPoint;
+            editorBlock susJuice;
+            editorBlock topSneakyNote;
             std::vector<editorBlock *> types;
             void init()
             {
@@ -91,19 +100,33 @@ namespace platformer
                 lava.setPositionOnSpriteSheet({0, 1856, 64, 64});
                 playerSpawn.setPositionOnSpriteSheet({0, 1984, 64, 64});
                 portal.setPositionOnSpriteSheet({0, 192, 64, 64});
-                grass.setGroupNumber(-1);
-                dirt.setGroupNumber(-1);
-                brick.setGroupNumber(-1);
-                laser.setGroupNumber(-1);
-                lava.setGroupNumber(-1);
-                portal.setGroupNumber(-1);
-                playerSpawn.setGroupNumber(-1);
+                brickR.setPositionOnSpriteSheet({512, 0, 64, 64});
+                brickO.setPositionOnSpriteSheet({448, 0, 64, 64});
+                brickY.setPositionOnSpriteSheet({384, 0, 64, 64});
+                brickG.setPositionOnSpriteSheet({320, 0, 64, 64});
+                brickB.setPositionOnSpriteSheet({256, 0, 64, 64});
+                brickP.setPositionOnSpriteSheet({256, 64, 64, 64});
+                brickW.setPositionOnSpriteSheet({320, 64, 64, 64});
+                accessPoint.setPositionOnSpriteSheet({576, 0, 64, 64});
+                accessPoint.setDimentions(128, 128);
+                susJuice.setPositionOnSpriteSheet({0, 1664, 64, 64});
+                topSneakyNote.setPositionOnSpriteSheet({192, 0, 64, 64});
                 grass.setType(valuesOfBlocks::Grass);
                 dirt.setType(valuesOfBlocks::Dirt);
                 brick.setType(valuesOfBlocks::Brick);
                 laser.setType(valuesOfBlocks::LaserNoTimeOffset);
                 lava.setType(valuesOfBlocks::Lava);
                 portal.setType(valuesOfBlocks::Portal);
+                brickR.setType(valuesOfBlocks::BrickR);
+                brickO.setType(valuesOfBlocks::BrickO);
+                brickY.setType(valuesOfBlocks::BrickY);
+                brickG.setType(valuesOfBlocks::BrickG);
+                brickB.setType(valuesOfBlocks::BrickB);
+                brickP.setType(valuesOfBlocks::BrickP);
+                brickW.setType(valuesOfBlocks::BrickW);
+                accessPoint.setType(valuesOfBlocks::AccessPoint);
+                susJuice.setType(valuesOfBlocks::SusJuice);
+                topSneakyNote.setType(valuesOfBlocks::TopSneakyNote);
                 playerSpawn.setType(valuesOfBlocks::PlayerSpawn);
                 types.push_back(&grass);
                 types.push_back(&dirt);
@@ -112,6 +135,16 @@ namespace platformer
                 types.push_back(&lava);
                 types.push_back(&playerSpawn);
                 types.push_back(&portal);
+                types.push_back(&brickR);
+                types.push_back(&brickO);
+                types.push_back(&brickY);
+                types.push_back(&brickG);
+                types.push_back(&brickB);
+                types.push_back(&brickP);
+                types.push_back(&brickW);
+                types.push_back(&accessPoint);
+                types.push_back(&susJuice);
+                types.push_back(&topSneakyNote);
             }
             bool clickCheck(Vector2 &mousePos, editorBlock *subject)
             {
@@ -155,7 +188,7 @@ int main()
     bool drawLaserBeams{1};
     bool showFPS{0};
     double time;
-    int defaultRotation {0};
+    int defaultRotation{0};
     std::string consoleBuffer;
     while (!WindowShouldClose())
     {
@@ -194,7 +227,6 @@ int main()
         // Draw the coordinates of the mouse cursor
         const char *mousePos = TextFormat("%d, %d", (int)snappingMousePosition.x, (int)snappingMousePosition.y);
         DrawText(mousePos, (snappingMousePosition.x - MeasureText(mousePos, 64) / 2), snappingMousePosition.y + 80, 64, YELLOW);
-        
 
         EndMode2D();
         // Draw toolbox background
@@ -209,7 +241,7 @@ int main()
         }
         // Draw text
         const char *descriptor = TextFormat("Blocks");
-        const char * activeBlockStatus = TextFormat("Rotation: %d°", defaultRotation);
+        const char *activeBlockStatus = TextFormat("Rotation: %d°", defaultRotation);
         DrawText(descriptor, (0.05f * resolution.x) - MeasureText(descriptor, (0.005f * hypotenuse)), resolution.y * 0.07f, 0.01f * hypotenuse, YELLOW);
         DrawText(activeBlockStatus, (0.05f * resolution.x) - MeasureText(activeBlockStatus, (0.005f * hypotenuse)), resolution.y * 0.8f, 0.01f * hypotenuse, YELLOW);
         if (isInConsole)
@@ -254,12 +286,17 @@ int main()
                 {
                     blocks.push_back(platformer::editorBlock(selectedBlock, snappingMousePosition.x, snappingMousePosition.y, 64, 64, defaultRotation));
                     blocks.at(blocks.size() - 1).setVisibility(1);
+                    if (blocks.at(blocks.size() - 1).getType() == platformer::valuesOfBlocks::AccessPoint)
+                    {
+                        blocks.at(blocks.size() - 1).setDimentions(128, 128);
+                    }
                     for (size_t i = 0; i < blocks.size(); i++)
                     {
                         if (blocks.at(i).getType() == platformer::valuesOfBlocks::LaserNoTimeOffset)
                         {
                             blocks.at(i).computeRay(blocks);
                         }
+                        
                     }
                 }
             }
@@ -503,6 +540,36 @@ int main()
                                     break;
                                 case (platformer::valuesOfBlocks::Portal):
                                     blocks.push_back(platformer::editorBlock(platformer::blocks::editor::portal, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::BrickR):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brickR, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::BrickO):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brickO, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::BrickY):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brickY, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::BrickG):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brickG, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::BrickB):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brickB, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::BrickP):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brickP, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::BrickW):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::brickW, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::AccessPoint):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::accessPoint, parsableArguments.at(0), (parsableArguments.at(1)), 128, 128, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::SusJuice):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::susJuice, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
+                                    break;
+                                case (platformer::valuesOfBlocks::TopSneakyNote):
+                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::topSneakyNote, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                                     break;
                                 default:
                                     break;

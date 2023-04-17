@@ -12,6 +12,16 @@ namespace platformer
         stationaryAnimatedBlock lava;   // 5
         player templatePlayer;          // 6
         stationaryAnimatedBlock portal; // 7
+        stationaryStaticBlock brickR;
+        stationaryStaticBlock brickO;
+        stationaryStaticBlock brickY;
+        stationaryStaticBlock brickG;
+        stationaryStaticBlock brickB;
+        stationaryStaticBlock brickP;
+        stationaryStaticBlock brickW;
+        stationaryAnimatedBlock accessPoint;
+        stationaryAnimatedBlock susJuice;
+        stationaryStaticBlock topSneakyNote;
         Camera2D inGameCamera;
         void init()
         {
@@ -20,6 +30,16 @@ namespace platformer
             brick.setPositionOnSpriteSheet({128, 0, 64, 64});
             laser.setInitialPositionOnSpriteSheet({0, 1792, 64, 64});
             portal.setInitialPositionOnSpriteSheet({0, 192, 64, 64});
+            brickR.setPositionOnSpriteSheet({512, 0, 64, 64});
+            brickO.setPositionOnSpriteSheet({448, 0, 64, 64});
+            brickY.setPositionOnSpriteSheet({384, 0, 64, 64});
+            brickG.setPositionOnSpriteSheet({320, 0, 64, 64});
+            brickB.setPositionOnSpriteSheet({256, 0, 64, 64});
+            brickP.setPositionOnSpriteSheet({256, 64, 64, 64});
+            brickW.setPositionOnSpriteSheet({320, 64, 64, 64});
+            accessPoint.setInitialPositionOnSpriteSheet({576, 0, 64, 64});
+            susJuice.setInitialPositionOnSpriteSheet({0, 1664, 64, 64});
+            topSneakyNote.setPositionOnSpriteSheet({192, 0, 64, 64});
             portal.setPixelsToOffset(64, 0);
             portal.setMaxFrames(5);
             laser.setPixelsToOffset(64, 0);
@@ -27,17 +47,27 @@ namespace platformer
             lava.setInitialPositionOnSpriteSheet({0, 1856, 64, 64});
             lava.setPixelsToOffset(20, 0);
             lava.setMaxFrames(6);
-            grass.setGroupNumber(-1);
-            dirt.setGroupNumber(-1);
-            brick.setGroupNumber(-1);
-            laser.setGroupNumber(-1);
-            lava.setGroupNumber(-1);
+            accessPoint.setMaxFrames(2);
+            accessPoint.setPixelsToOffset(64, 0);
+            accessPoint.setDimentions(128, 128);
+            susJuice.setMaxFrames(5);
+            susJuice.setPixelsToOffset(64, 0);
             grass.setType(valuesOfBlocks::Grass);
             dirt.setType(valuesOfBlocks::Dirt);
             brick.setType(valuesOfBlocks::Brick);
             laser.setType(valuesOfBlocks::LaserNoTimeOffset);
             lava.setType(valuesOfBlocks::Lava);
             portal.setType(valuesOfBlocks::Portal);
+            brickR.setType(valuesOfBlocks::BrickR);
+            brickO.setType(valuesOfBlocks::BrickO);
+            brickY.setType(valuesOfBlocks::BrickY);
+            brickG.setType(valuesOfBlocks::BrickG);
+            brickB.setType(valuesOfBlocks::BrickB);
+            brickP.setType(valuesOfBlocks::BrickP);
+            brickW.setType(valuesOfBlocks::BrickW);
+            accessPoint.setType(valuesOfBlocks::AccessPoint);
+            susJuice.setType(valuesOfBlocks::SusJuice);
+            topSneakyNote.setType(valuesOfBlocks::TopSneakyNote);
             templatePlayer.setInitialPositionOnSpriteSheet({0, 1984, 64, 64});
             templatePlayer.setPixelsToOffset(64, 0);
             templatePlayer.setMaxFrames(5);
@@ -54,7 +84,7 @@ namespace platformer
                 std::this_thread::sleep_for(std::chrono::milliseconds(ms));
             }
         }
-        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> &staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> &animatedBlocks, player &pplayer, bool &workerStatus, std::vector<int> &activeKeypresses, float &tickRate, std::string &file, platformer::animatedText & aniText, double & time)
+        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> &staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> &animatedBlocks, player &pplayer, bool &workerStatus, std::vector<int> &activeKeypresses, float &tickRate, std::string &file, platformer::animatedText &aniText, double &time)
         {
             while (workerStatus)
             {
@@ -87,8 +117,8 @@ namespace platformer
                 }
                 else
                 {
-                    std::cerr << "WARN: SYSTEM: Physics thread cannot keep up! Physics will be innaccurate" << '\n';
-                    aniText.setContent("WARN: SYSTEM: Physics thread cannot keep up! Physics will be innaccurate");
+                    std::cerr << "WARN: SYSTEM: Physics thread cannot keep up! Physics will be inaccurate" << '\n';
+                    aniText.setContent("WARN: SYSTEM: Physics thread cannot keep up! Physics will be inaccurate");
                     aniText.revive(time, 3);
                 }
             }
@@ -106,7 +136,7 @@ namespace platformer
         {
             if (FileExists(filename))
             {
-                //std::stringstream source = platformer::readCompressedData(filename);
+                // std::stringstream source = platformer::readCompressedData(filename);
                 std::ifstream source(filename, std::ios::in);
                 dest.clear();
                 aDest.clear();
@@ -160,11 +190,40 @@ namespace platformer
                         case (platformer::valuesOfBlocks::Portal):
                             aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::portal, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
                             break;
+                        case (platformer::valuesOfBlocks::BrickR):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickR, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            break;
+                        case (platformer::valuesOfBlocks::BrickO):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickO, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            break;
+                        case (platformer::valuesOfBlocks::BrickY):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickY, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            break;
+                        case (platformer::valuesOfBlocks::BrickG):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickG, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            break;
+                        case (platformer::valuesOfBlocks::BrickB):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickB, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            break;
+                        case (platformer::valuesOfBlocks::BrickP):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickP, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            break;
+                        case (platformer::valuesOfBlocks::BrickW):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickW, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            break;
+                        case (platformer::valuesOfBlocks::AccessPoint):
+                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::accessPoint, parsableArguments.at(0), (parsableArguments.at(1)), 128, 128, nullptr, parsableArguments.at(3)));
+                            break;
+                        case (platformer::valuesOfBlocks::SusJuice):
+                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::susJuice, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
+                            break;
+                        case (platformer::valuesOfBlocks::TopSneakyNote):
+                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::topSneakyNote, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            break;
                         default:
                             break;
                         }
                     }
-                    
                 }
                 source.close();
             }
@@ -172,7 +231,6 @@ namespace platformer
             {
                 aDest.at(i)->computeRay(dest);
             }
-
         }
     }
 }

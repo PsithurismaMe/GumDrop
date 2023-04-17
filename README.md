@@ -82,6 +82,7 @@ If you want to compile this on Windows, Have fun.
 | Reset level | `/reset level` |
 | Reset save data * | `/reset savedata` |
 | Set max framerate * | `/set fps <maxFPS>` |
+| Skip currently playing song | `/skip music` |
 
 \* Levels must be in `/levels/` <br>
 \* You will also see a graph showing your frametimes <br>

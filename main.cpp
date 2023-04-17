@@ -64,29 +64,34 @@ int main(int argc, char **argv)
                                         {
                                             staticBlocks.at(i)->setVisibility(1);
                                             //float distance = sqrt((pow((staticBlocks.at(i)->getPosition().x - platformer::blocks::inGameCamera.target.x), 2) + pow((staticBlocks.at(i)->getPosition().y - platformer::blocks::inGameCamera.target.y), 2)));
-                                            //staticBlocks.at(i)->setAlpha(((int)(16000.0f/distance)) % 255);
+                                            //staticBlocks.at(i)->setAlpha(((1152.0f - distance) / 1152.0f) * 255);
                                         }
                                         else
                                         {
                                             staticBlocks.at(i)->setVisibility(0);
                                         }
                                     }
-                                    /*
-                                    for (size_t i = 0; i < animatedBlocks.size(); i++)
-                                    {
-                                        float distance = sqrt((pow((animatedBlocks.at(i)->getPosition().x - platformer::blocks::inGameCamera.target.x), 2) + pow((animatedBlocks.at(i)->getPosition().y - platformer::blocks::inGameCamera.target.y), 2)));
-                                        animatedBlocks.at(i)->setAlpha(((int)(16000.0f/distance)) % 255);
-                                    }
-                                    */
+                                    
+                                    //for (size_t i = 0; i < animatedBlocks.size(); i++)
+                                    //{
+                                    //    float distance = sqrt((pow((animatedBlocks.at(i)->getPosition().x - platformer::blocks::inGameCamera.target.x), 2) + pow((animatedBlocks.at(i)->getPosition().y - platformer::blocks::inGameCamera.target.y), 2)));
+                                    //    animatedBlocks.at(i)->setAlpha(((1152.0f - distance) / 1152.0f) * 255);
+                                    //}
+                                    
                                 }           
                                 });
         std::thread everyOneSec(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[0]), std::ref(workerStatus), 1000);
         std::thread every100ms(platformer::blocks::incrementEveryMilliseconds, std::ref(globalIterables[1]), std::ref(workerStatus), 100);
         std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses), std::ref(tickRate), std::ref(filename), std::ref(animatedText), std::ref(time));
-        for (auto i : animatedBlocks)
+        for (int i = 0; i < animatedBlocks.size(); i++)
         {
-            i->setIterablePointer(&globalIterables[1]);
+            animatedBlocks.at(i)->setIterablePointer(&globalIterables[1]);
+            if (animatedBlocks.at(i)->getType() == platformer::Lava || animatedBlocks.at(i)->getType() == platformer::SusJuice)
+            {
+                animatedBlocks.at(i)->setIteratorOffset(i);
+            }
         }
+        console.assignPointers(&resolution, &mousePosition, &hypotenuse, &keypress, &filename, &animatedText, &time, &player);
         while (isRunning)
         {
             platformer::music::update(animatedText, time);
@@ -102,7 +107,7 @@ int main(int argc, char **argv)
             ClearBackground(background);
             if (isPaused)
             {
-                platformer::ui::alternateRenderer(mousePosition, resolution, isPaused, isRunning, spritesheet, hypotenuse, tickRate);
+                platformer::ui::pauseMenu(mousePosition, resolution, isPaused, isRunning, spritesheet, hypotenuse, tickRate);
             }
             else
             {
@@ -133,7 +138,7 @@ int main(int argc, char **argv)
                 EndMode2D();
             }
             animatedText.draw(hypotenuse, time, 0.01f, resolution);
-            if (console.draw(resolution, hypotenuse, keypress, filename, animatedText, time) == -1)
+            if (console.draw() == -1)
             {
                 break;
             }

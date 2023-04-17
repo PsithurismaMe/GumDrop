@@ -25,6 +25,16 @@ namespace platformer
         Lava,
         PlayerSpawn,
         Portal,
+        BrickR,
+        BrickO,
+        BrickY,
+        BrickG,
+        BrickB,
+        BrickP,
+        BrickW,
+        AccessPoint,
+        SusJuice,
+        TopSneakyNote
     };
     Vector2 rotatePointAroundOtherPoint(Vector2 origionalPoint, Vector2 pointToRotateAround, float degreesToRotate)
     {
@@ -122,7 +132,6 @@ namespace platformer
     protected:
         Rectangle inGamePositionDimension{0, 0, 64, 64};
         bool collisionEnabled;
-        int groupNumber;
         bool isVisibleToPlayer{0};
         int rotation{0};
 
@@ -143,27 +152,13 @@ namespace platformer
         {
             return isVisibleToPlayer;
         }
-        // Yet to be implemented
-        void updateGroupNumber(void *ptr)
-        {
-        }
-        // So far this number does nothing
-        void setGroupNumber(int gn)
-        {
-            groupNumber = gn;
-        }
-        // So far this number does nothing
-        int getGroupNumber()
-        {
-            return groupNumber;
-        }
         // This position is in game world space
         void setPosition(float x, float y)
         {
             inGamePositionDimension.x = x;
             inGamePositionDimension.y = y;
         }
-        // These dimentions are for world space
+        // These dimensions are for world space
         void setDimentions(float width, float height)
         {
             inGamePositionDimension.width = width;
@@ -174,7 +169,7 @@ namespace platformer
         {
             return {inGamePositionDimension.x, inGamePositionDimension.y};
         }
-        // These dimentions are for world space
+        // These dimensions are for world space
         Vector2 getDimentions()
         {
             return {inGamePositionDimension.width, inGamePositionDimension.height};
@@ -192,7 +187,6 @@ namespace platformer
         {
             inGamePositionDimension = {0.0f, 0.0f, 0.0f, 0.0f};
             collisionEnabled = 1;
-            groupNumber = rand();
         }
     };
     class stationaryStaticBlock : public collidable
@@ -200,7 +194,8 @@ namespace platformer
     protected:
         Rectangle positionOnSpriteSheet;
         int type;
-        int alpha {255};
+        int alpha{255};
+
     public:
         void setAlpha(int ahla)
         {
@@ -223,7 +218,7 @@ namespace platformer
         // Draws this object to the screen
         void draw(Texture2D &spritesheet)
         {
-            DrawTexturePro(spritesheet, positionOnSpriteSheet, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, {255, 255, 255, (unsigned char) alpha});
+            DrawTexturePro(spritesheet, positionOnSpriteSheet, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, {255, 255, 255, (unsigned char)alpha});
         }
         stationaryStaticBlock()
         {
@@ -252,22 +247,32 @@ namespace platformer
         Rectangle initialPositionOnSpriteSheet;
         Vector2 pixelsToOffsetUponUpdate;
         int maximumFrames = 2;
+        int iteratorOffset{0};
         int frameToDisplay{0};
         size_t *iterable = nullptr;
         int type;
         int rayLength{0};
         Vector2 beginOfRay;
         Vector2 endOfRay;
-        int alpha {255};
+        int alpha{255};
+
     public:
+        void setIteratorOffset(int number)
+        {
+            iteratorOffset = number;
+        }
+        int getIteratorOffset()
+        {
+            return iteratorOffset;
+        }
         // Computes the max distance a laser beam will travel. Gives up if it exceeds 4096 pixels
         void computeRay(std::vector<stationaryStaticBlock *> obstecules)
         {
             Vector2 origion;
             int lowest{4096};
             int halfSpriteWidth = inGamePositionDimension.width / 2;
-            Vector2 p1 {inGamePositionDimension.x + halfSpriteWidth, inGamePositionDimension.y + halfSpriteWidth};
-            Vector2 p2 {inGamePositionDimension.x + lowest, inGamePositionDimension.y + halfSpriteWidth};
+            Vector2 p1{inGamePositionDimension.x + halfSpriteWidth, inGamePositionDimension.y + halfSpriteWidth};
+            Vector2 p2{inGamePositionDimension.x + lowest, inGamePositionDimension.y + halfSpriteWidth};
             origion.x = inGamePositionDimension.x + halfSpriteWidth;
             origion.y = inGamePositionDimension.y + halfSpriteWidth;
             p1 = platformer::rotatePointAroundOtherPoint(p1, origion, rotation);
@@ -317,7 +322,7 @@ namespace platformer
         {
             initialPositionOnSpriteSheet = rect;
         }
-        // (Position of spritesheet.png used as a texure) = initialPositionOnSpriteSheet + (frameToDisplay * pixelsToOffset)
+        // (Position of spritesheet.png used as a texture) = initialPositionOnSpriteSheet + (frameToDisplay * pixelsToOffset)
         void setPixelsToOffset(int dx, int dy)
         {
             pixelsToOffsetUponUpdate.x = dx;
@@ -349,8 +354,8 @@ namespace platformer
             // Iterable must be assigned to a size_t before this can be drawn
             if (iterable != nullptr)
             {
-                frameToDisplay = (*iterable % maximumFrames);
-                DrawTexturePro(spritesheet, {(frameToDisplay * pixelsToOffsetUponUpdate.x) + initialPositionOnSpriteSheet.x, (frameToDisplay * pixelsToOffsetUponUpdate.y) + initialPositionOnSpriteSheet.y, initialPositionOnSpriteSheet.width, initialPositionOnSpriteSheet.height}, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, {255, 255, 255, (unsigned char) alpha});
+                frameToDisplay = ((*iterable + iteratorOffset) % maximumFrames);
+                DrawTexturePro(spritesheet, {(frameToDisplay * pixelsToOffsetUponUpdate.x) + initialPositionOnSpriteSheet.x, (frameToDisplay * pixelsToOffsetUponUpdate.y) + initialPositionOnSpriteSheet.y, initialPositionOnSpriteSheet.width, initialPositionOnSpriteSheet.height}, {inGamePositionDimension.x + inGamePositionDimension.width / 2, inGamePositionDimension.y + inGamePositionDimension.height / 2, inGamePositionDimension.width, inGamePositionDimension.height}, {inGamePositionDimension.width / 2, inGamePositionDimension.height / 2}, rotation, {255, 255, 255, (unsigned char)alpha});
             }
             else
             {
@@ -382,7 +387,6 @@ namespace platformer
     class npc : public stationaryAnimatedBlock
     {
     protected:
-        
     };
     class player : public stationaryAnimatedBlock
     {
@@ -399,7 +403,8 @@ namespace platformer
         int isMoving{0};
         Vector2 playerDesiredMovement;
         bool reloadLevel{0};
-        size_t deathCount {0};
+        size_t deathCount{0};
+        float chance {0.0f};
     public:
         size_t getDeathCount()
         {
@@ -471,7 +476,7 @@ namespace platformer
             // This is slightly smaller than the actual sprite because floating point approximation limitations
             return {(inGamePositionDimension.x) + (velocity.x * timeDelta * xAxisOverride), (inGamePositionDimension.y + 23) + (velocity.y * timeDelta * yAxisOverride), 63, 41};
         }
-        void doPhysicsStep(std::vector<stationaryStaticBlock *> &staticBlocks, std::vector<stationaryAnimatedBlock *> &animatedBlocks, float frameDelta, std::string &file, platformer::animatedText & aniText)
+        void doPhysicsStep(std::vector<stationaryStaticBlock *> &staticBlocks, std::vector<stationaryAnimatedBlock *> &animatedBlocks, float frameDelta, std::string &file, platformer::animatedText &aniText)
         {
             velocity.y += 1 * dragCoefficent.y * frameDelta;
             velocity.x > 0 ? velocity.x -= 1 *dragCoefficent.x *frameDelta : velocity.x += 1 * dragCoefficent.x * frameDelta;
@@ -543,7 +548,7 @@ namespace platformer
                     if (deadlyWillCollide)
                     {
                         deathCount++;
-                        aniText.setContent(TextFormat("%d Lives wasted", (int) deathCount));
+                        aniText.setContent(TextFormat("%d Lives wasted", (int)deathCount));
                         aniText.revive(GetTime(), 5);
                         inGamePositionDimension.x = checkpoint.x;
                         inGamePositionDimension.y = checkpoint.y;
@@ -556,7 +561,7 @@ namespace platformer
                     if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
                     {
                         deathCount++;
-                        aniText.setContent(TextFormat("%d Lives wasted", (int) deathCount));
+                        aniText.setContent(TextFormat("%d Lives wasted", (int)deathCount));
                         aniText.revive(GetTime(), 5);
                         inGamePositionDimension.x = checkpoint.x;
                         inGamePositionDimension.y = checkpoint.y;
@@ -573,6 +578,17 @@ namespace platformer
                         file = std::to_string(o);
                         reloadLevel = 1;
                         SaveFileText(".savedata", (char *)file.c_str());
+                        break;
+                    }
+                }
+                else if (animatedBlocks.at(i)->getType() == valuesOfBlocks::SusJuice)
+                {
+                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
+                    if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
+                    {
+                        chance++;
+                        aniText.setContent(TextFormat("You have been artificially inseminated. Chance of pregnancy: %.2f", chance));
+                        aniText.revive(GetTime(), 5);
                         break;
                     }
                 }
@@ -618,140 +634,6 @@ namespace platformer
         {
             checkpoint.x = x;
             checkpoint.y = y;
-        }
-    };
-    class console
-    {
-    protected:
-        Vector2 positionToStartDrawing;
-        Vector2 positionToDrawFPS;
-        std::string cin;
-        std::vector<std::string> arguments;
-        std::array<float, 100> frameTimes;
-        bool isInConsole;
-        bool fpsIsVisible{0};
-        int indexToEdit{0};
-        int parseArguments(std::string &filename)
-        {
-
-            return 0;
-        }
-
-    public:
-        int draw(Vector2 &windowResolution, float &hypotenuse, wchar_t &keypress, std::string &filename, platformer::animatedText & aniText, double & time)
-        {
-            int returnVal = 0;
-            if (fpsIsVisible)
-            {
-                frameTimes[indexToEdit] = GetFrameTime();
-                indexToEdit++;
-                indexToEdit = indexToEdit % 100;
-                float sum{0};
-                for (int i = 0; i < 100; i++)
-                {
-                    sum += frameTimes[indexToEdit];
-                }
-                float mean = sum / 100.0f;
-                for (int i = 0; i < 50; i++)
-                {
-                    DrawLine(i, ((frameTimes[i] / mean) * 10) + windowResolution.y / 2, i + 1, ((frameTimes[i + 1] / mean) * 10) + windowResolution.y / 2, YELLOW);
-                }
-                DrawText(TextFormat("FPS: %d", (int)(1.0f / mean)), positionToDrawFPS.x * windowResolution.x, positionToDrawFPS.y * windowResolution.y, 0.01f * hypotenuse, YELLOW);
-                // DrawText(TextFormat("stddvn: %f", stdv), positionToDrawFPS.x * windowResolution.x, (0.1f + positionToDrawFPS.y) * windowResolution.y, 0.01f * hypotenuse, YELLOW);
-            }
-            if (isInConsole)
-            {
-                if (keypress != 0 && keypress >= 32 && keypress <= 122)
-                {
-                    cin += keypress;
-                }
-                if (IsKeyPressed(KEY_BACKSPACE) && cin.size() > 0)
-                {
-                    cin.pop_back();
-                }
-                if (IsKeyPressed(KEY_ENTER))
-                {
-                    int returnVal{0};
-                    arguments.clear();
-                    std::string buffer;
-                    std::stringstream otherCin(cin);
-                    while (std::getline(otherCin, buffer, ' '))
-                    {
-                        arguments.push_back(buffer);
-                    }
-                    try
-                    {
-                        if (arguments.at(0) == "/showfps")
-                        {
-                            fpsIsVisible = !fpsIsVisible;
-                            throw std::invalid_argument("FPS counter toggled.");
-                        }
-                        if (arguments.at(0) == "/load")
-                        {
-                            std::string flnm = "levels/" + arguments.at(1);
-                            if (FileExists(flnm.c_str()))
-                            {
-                                filename = arguments.at(1);
-                                return -1;
-                            }
-                            else
-                            {
-                                throw std::invalid_argument("Level " + arguments.at(1) + " does not exist!");
-                            }
-                        }
-                        if (arguments.at(0) == "/fullscreen")
-                        {
-                            ToggleFullscreen();
-                            throw std::invalid_argument("Fullscreen toggled");
-                        }
-                        if (arguments.at(0) == "/reset")
-                        {
-                            if (arguments.at(1) == "savedata")
-                            {
-                                remove(".savedata");
-                                throw std::invalid_argument("Deleted save data");
-                            }
-                            if (arguments.at(1) == "level")
-                            {
-                                return -1;
-                            }
-                        }
-                        if (arguments.at(0) == "/set")
-                        {
-                            if (arguments.at(1) == "fps" && arguments.size() > 2)
-                            {
-                                SetTargetFPS(std::stoi(arguments.at(2)));
-                                throw std::invalid_argument("FPS capped to " + arguments.at(2) + "FPS");
-                            }
-                            if (arguments.at(1) == "volume" && arguments.size() > 2)
-                            {
-                                SetMasterVolume(std::stof(arguments.at(2)));
-                                throw std::invalid_argument("Set Volume to " + arguments.at(2));
-                            }
-                        }
-                    }
-                    catch (const std::exception &e)
-                    {
-                        std::cerr << e.what() << '\n';
-                        aniText.setContent(e.what());
-                        aniText.revive(time, 3);
-                    }
-                    toggleConsole();
-                    cin.clear();
-                }
-                DrawText(cin.c_str(), (positionToStartDrawing.x * windowResolution.x), (positionToStartDrawing.y * windowResolution.y), hypotenuse * 0.01f, YELLOW);
-            }
-            return returnVal;
-        }
-        console()
-        {
-            positionToStartDrawing = {0.1f, 0.8f};
-            positionToDrawFPS = {0.1f, 0.1f};
-            isInConsole = 0;
-        }
-        void toggleConsole()
-        {
-            isInConsole = !isInConsole;
         }
     };
     class setting

@@ -21,7 +21,7 @@ namespace platformer
             quitButton.setIterablePointer(&quitButtonIsHighlighted);
             returnToGameButton.setIterablePointer(&returnButtonIsHighlighted);
         }
-        void alternateRenderer(Vector2 & mousePos, Vector2 & screenDimentions, bool & isPaused, bool & isRunning, Texture2D & spritesheet, float c, float & tickRate)
+        void pauseMenu(Vector2 & mousePos, Vector2 & screenDimentions, bool & isPaused, bool & isRunning, Texture2D & spritesheet, float c, float & tickRate)
         {
             tickRate = 0;
             Rectangle qtb = {(screenDimentions.x / 2), (screenDimentions.y * 0.8f), 128, 64};
