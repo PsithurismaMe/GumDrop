@@ -187,7 +187,10 @@ int main()
     bool isInConsole{0};
     bool drawLaserBeams{1};
     bool showFPS{0};
+    int isMesuring{0};
     double time;
+    Vector2 rulerBegin;
+    Vector2 rulerEnd;
     int defaultRotation{0};
     std::string consoleBuffer;
     while (!WindowShouldClose())
@@ -227,15 +230,41 @@ int main()
         // Draw the coordinates of the mouse cursor
         const char *mousePos = TextFormat("%d, %d", (int)snappingMousePosition.x, (int)snappingMousePosition.y);
         DrawText(mousePos, (snappingMousePosition.x - MeasureText(mousePos, 64) / 2), snappingMousePosition.y + 80, 64, YELLOW);
+        switch (isMesuring)
+        {
+        case (1):
+            DrawRectangleV(rulerBegin, {64, 64}, {255, 0, 0, 100});
+            break;
+        case (2):
+            {
+                Vector2 midPoint;
+                Vector2 distance;
+                midPoint.x = (rulerBegin.x + rulerEnd.x) / 2.0f;
+                midPoint.y = (rulerBegin.y + rulerEnd.y) / 2.0f;
+                distance.x = std::abs(rulerEnd.x - rulerBegin.x) + 64;
+                distance.y = std::abs(rulerEnd.y - rulerBegin.y) + 64;
+                const char *distanceText = TextFormat("%d x %d", (int)distance.x / 64, (int)distance.y / 64);
+                DrawText(distanceText, (midPoint.x - MeasureText(distanceText, 64) / 2), midPoint.y, 64, RED);
+                DrawRectangleV(rulerBegin, {64, 64}, {255, 0, 0, 100});
+                DrawRectangleV(rulerEnd, {64, 64}, {255, 0, 0, 100});
+            }
+            break;
 
+        default:
+            break;
+        }
         EndMode2D();
         // Draw toolbox background
         DrawRectangle(0, 0, (resolution.x * 0.1f), resolution.y, {0, 0, 200, 100});
         // Draw all selectable blocks
         for (int i = 0; i < platformer::blocks::editor::types.size(); i++)
         {
+            Vector2 whereToDraw = {(resolution.x * 0.015f), (resolution.y * 0.1f)};
             int k = ((int)i / 5);
-            platformer::blocks::editor::types.at(i)->setPosition((resolution.x * 0.015f) + ((i % 5) * resolution.x * 0.015f), (resolution.y * 0.1f * (k + 1)));
+            int z = (i % 5);
+            whereToDraw.x = whereToDraw.x + (k * 0.015f * hypotenuse);
+            whereToDraw.y = whereToDraw.y + (z * 0.015f * hypotenuse);
+            platformer::blocks::editor::types.at(i)->setPosition(whereToDraw.x, whereToDraw.y);
             platformer::blocks::editor::types.at(i)->setDimentions(0.01f * hypotenuse, 0.01f * hypotenuse);
             platformer::blocks::editor::types.at(i)->draw(spritesheet);
         }
@@ -296,7 +325,6 @@ int main()
                         {
                             blocks.at(i).computeRay(blocks);
                         }
-                        
                     }
                 }
             }
@@ -369,6 +397,34 @@ int main()
         {
             defaultRotation += 90;
             defaultRotation = defaultRotation % 360;
+        }
+        if (IsKeyPressed(KEY_LEFT_CONTROL))
+        {
+            switch (isMesuring)
+            {
+            case (0):
+                rulerBegin = snappingMousePosition;
+                isMesuring++;
+                animatedText.setDestination(0.1f, 0.7f);
+                animatedText.setContent("Ruler Position 1 Set");
+                animatedText.revive(time, 3);
+                break;
+            case (1):
+                rulerEnd = snappingMousePosition;
+                isMesuring++;
+                animatedText.setDestination(0.1f, 0.7f);
+                animatedText.setContent("Ruler Position 2 Set\nShowing distance");
+                animatedText.revive(time, 3);
+                break;
+            case (2):
+                isMesuring = 0;
+                animatedText.setDestination(0.1f, 0.7f);
+                animatedText.setContent("Reset Ruler");
+                animatedText.revive(time, 3);
+                break;
+            default:
+                break;
+            }
         }
         for (size_t i = 0; i < platformer::blocks::editor::types.size(); i++)
         {
