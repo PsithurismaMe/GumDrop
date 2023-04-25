@@ -12,3 +12,4 @@ assets/tilesheetSpecial.png
 assets/tilesheet.kra
 .gitignore
 assets/tilesheet.kra~
+demo.cpp

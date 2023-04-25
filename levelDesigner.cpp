@@ -233,22 +233,33 @@ int main()
         switch (isMesuring)
         {
         case (1):
+        {
+            Vector2 midPoint;
+            Vector2 distance;
+            midPoint.x = (rulerBegin.x + (int)snappingMousePosition.x) / 2.0f;
+            midPoint.y = (rulerBegin.y + (int)snappingMousePosition.y) / 2.0f;
+            distance.x = std::abs((int)snappingMousePosition.x - rulerBegin.x) + 64;
+            distance.y = std::abs((int)snappingMousePosition.y - rulerBegin.y) + 64;
+            const char *distanceText = TextFormat("%d x %d", (int)distance.x / 64, (int)distance.y / 64);
+            DrawText(distanceText, (midPoint.x - MeasureText(distanceText, 64) / 2), midPoint.y, 64, YELLOW);
             DrawRectangleV(rulerBegin, {64, 64}, {255, 0, 0, 100});
+            DrawRectangleV(snappingMousePosition, {64, 64}, {253, 249, 0, 100});
             break;
+        }
         case (2):
-            {
-                Vector2 midPoint;
-                Vector2 distance;
-                midPoint.x = (rulerBegin.x + rulerEnd.x) / 2.0f;
-                midPoint.y = (rulerBegin.y + rulerEnd.y) / 2.0f;
-                distance.x = std::abs(rulerEnd.x - rulerBegin.x) + 64;
-                distance.y = std::abs(rulerEnd.y - rulerBegin.y) + 64;
-                const char *distanceText = TextFormat("%d x %d", (int)distance.x / 64, (int)distance.y / 64);
-                DrawText(distanceText, (midPoint.x - MeasureText(distanceText, 64) / 2), midPoint.y, 64, RED);
-                DrawRectangleV(rulerBegin, {64, 64}, {255, 0, 0, 100});
-                DrawRectangleV(rulerEnd, {64, 64}, {255, 0, 0, 100});
-            }
-            break;
+        {
+            Vector2 midPoint;
+            Vector2 distance;
+            midPoint.x = (rulerBegin.x + rulerEnd.x) / 2.0f;
+            midPoint.y = (rulerBegin.y + rulerEnd.y) / 2.0f;
+            distance.x = std::abs(rulerEnd.x - rulerBegin.x) + 64;
+            distance.y = std::abs(rulerEnd.y - rulerBegin.y) + 64;
+            const char *distanceText = TextFormat("%d x %d", (int)distance.x / 64, (int)distance.y / 64);
+            DrawText(distanceText, (midPoint.x - MeasureText(distanceText, 64) / 2), midPoint.y, 64, RED);
+            DrawRectangleV(rulerBegin, {64, 64}, {255, 0, 0, 100});
+            DrawRectangleV(rulerEnd, {64, 64}, {255, 0, 0, 100});
+        }
+        break;
 
         default:
             break;
