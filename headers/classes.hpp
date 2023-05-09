@@ -34,7 +34,6 @@ namespace platformer
         BrickW,
         AccessPoint,
         SusJuice,
-        TopSneakyNote
     };
     Vector2 rotatePointAroundOtherPoint(Vector2 origionalPoint, Vector2 pointToRotateAround, float degreesToRotate)
     {
@@ -588,6 +587,18 @@ namespace platformer
                     {
                         chance++;
                         aniText.setContent(TextFormat("You have been artificially inseminated. Chance of pregnancy: %.2f", chance));
+                        aniText.revive(GetTime(), 5);
+                        break;
+                    }
+                }
+                else if (animatedBlocks.at(i)->getType() == valuesOfBlocks::AccessPoint)
+                {
+                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
+                    if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
+                    {
+                        checkpoint.x = inGamePositionDimension.x;
+                        checkpoint.y = inGamePositionDimension.y - 64;
+                        aniText.setContent(TextFormat("Checkpoint Set."));
                         aniText.revive(GetTime(), 5);
                         break;
                     }

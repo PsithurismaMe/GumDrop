@@ -89,7 +89,6 @@ namespace platformer
             editorBlock brickW;
             editorBlock accessPoint;
             editorBlock susJuice;
-            editorBlock topSneakyNote;
             std::vector<editorBlock *> types;
             void init()
             {
@@ -110,7 +109,6 @@ namespace platformer
                 accessPoint.setPositionOnSpriteSheet({576, 0, 64, 64});
                 accessPoint.setDimentions(128, 128);
                 susJuice.setPositionOnSpriteSheet({0, 1664, 64, 64});
-                topSneakyNote.setPositionOnSpriteSheet({192, 0, 64, 64});
                 grass.setType(valuesOfBlocks::Grass);
                 dirt.setType(valuesOfBlocks::Dirt);
                 brick.setType(valuesOfBlocks::Brick);
@@ -126,7 +124,6 @@ namespace platformer
                 brickW.setType(valuesOfBlocks::BrickW);
                 accessPoint.setType(valuesOfBlocks::AccessPoint);
                 susJuice.setType(valuesOfBlocks::SusJuice);
-                topSneakyNote.setType(valuesOfBlocks::TopSneakyNote);
                 playerSpawn.setType(valuesOfBlocks::PlayerSpawn);
                 types.push_back(&grass);
                 types.push_back(&dirt);
@@ -144,7 +141,6 @@ namespace platformer
                 types.push_back(&brickW);
                 types.push_back(&accessPoint);
                 types.push_back(&susJuice);
-                types.push_back(&topSneakyNote);
             }
             bool clickCheck(Vector2 &mousePos, editorBlock *subject)
             {
@@ -634,9 +630,6 @@ int main()
                                     break;
                                 case (platformer::valuesOfBlocks::SusJuice):
                                     blocks.push_back(platformer::editorBlock(platformer::blocks::editor::susJuice, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
-                                    break;
-                                case (platformer::valuesOfBlocks::TopSneakyNote):
-                                    blocks.push_back(platformer::editorBlock(platformer::blocks::editor::topSneakyNote, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                                     break;
                                 default:
                                     break;

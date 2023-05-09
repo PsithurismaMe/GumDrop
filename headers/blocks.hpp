@@ -21,7 +21,6 @@ namespace platformer
         stationaryStaticBlock brickW;
         stationaryAnimatedBlock accessPoint;
         stationaryAnimatedBlock susJuice;
-        stationaryStaticBlock topSneakyNote;
         Camera2D inGameCamera;
         void init()
         {
@@ -39,7 +38,6 @@ namespace platformer
             brickW.setPositionOnSpriteSheet({320, 64, 64, 64});
             accessPoint.setInitialPositionOnSpriteSheet({576, 0, 64, 64});
             susJuice.setInitialPositionOnSpriteSheet({0, 1664, 64, 64});
-            topSneakyNote.setPositionOnSpriteSheet({192, 0, 64, 64});
             portal.setPixelsToOffset(64, 0);
             portal.setMaxFrames(5);
             laser.setPixelsToOffset(64, 0);
@@ -67,7 +65,6 @@ namespace platformer
             brickW.setType(valuesOfBlocks::BrickW);
             accessPoint.setType(valuesOfBlocks::AccessPoint);
             susJuice.setType(valuesOfBlocks::SusJuice);
-            topSneakyNote.setType(valuesOfBlocks::TopSneakyNote);
             templatePlayer.setInitialPositionOnSpriteSheet({0, 1984, 64, 64});
             templatePlayer.setPixelsToOffset(64, 0);
             templatePlayer.setMaxFrames(5);
@@ -216,9 +213,6 @@ namespace platformer
                             break;
                         case (platformer::valuesOfBlocks::SusJuice):
                             aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::susJuice, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
-                            break;
-                        case (platformer::valuesOfBlocks::TopSneakyNote):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::topSneakyNote, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                             break;
                         default:
                             break;
