@@ -81,7 +81,7 @@ namespace platformer
                 std::this_thread::sleep_for(std::chrono::milliseconds(ms));
             }
         }
-        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock *> &staticBlocks, std::vector<platformer::stationaryAnimatedBlock *> &animatedBlocks, player &pplayer, bool &workerStatus, std::vector<int> &activeKeypresses, float &tickRate, std::string &file, platformer::animatedText &aniText, double &time)
+        void Every16Milliseconds(std::vector<platformer::stationaryStaticBlock> &staticBlocks, std::vector<platformer::stationaryAnimatedBlock> &animatedBlocks, player &pplayer, bool &workerStatus, std::vector<int> &activeKeypresses, float &tickRate, std::string &file, platformer::animatedText &aniText, double &time)
         {
             while (workerStatus)
             {
@@ -129,7 +129,7 @@ namespace platformer
                 }
             }
         }
-        void loadFromFile(const char *filename, std::vector<platformer::stationaryStaticBlock *> &dest, std::vector<platformer::stationaryAnimatedBlock *> &aDest, Color &backgroundColor)
+        void loadFromFile(const char *filename, std::vector<platformer::stationaryStaticBlock> &dest, std::vector<platformer::stationaryAnimatedBlock> &aDest, Color &backgroundColor)
         {
             if (FileExists(filename))
             {
@@ -165,19 +165,19 @@ namespace platformer
                         switch (parsableArguments.at(2))
                         {
                         case (platformer::valuesOfBlocks::Grass):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::grass, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::grass, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::Dirt):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::dirt, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::dirt, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::Brick):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brick, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::brick, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::LaserNoTimeOffset):
-                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::laser, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
+                            aDest.push_back(platformer::stationaryAnimatedBlock(platformer::blocks::laser, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::Lava):
-                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::lava, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
+                            aDest.push_back(platformer::stationaryAnimatedBlock(platformer::blocks::lava, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::PlayerSpawn):
                             templatePlayer.setPosition(parsableArguments.at(0), parsableArguments.at(1));
@@ -185,34 +185,34 @@ namespace platformer
                             templatePlayer.setCheckpoint(parsableArguments.at(0), parsableArguments.at(1));
                             break;
                         case (platformer::valuesOfBlocks::Portal):
-                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::portal, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
+                            aDest.push_back(platformer::stationaryAnimatedBlock(platformer::blocks::portal, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::BrickR):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickR, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::brickR, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::BrickO):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickO, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::brickO, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::BrickY):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickY, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::brickY, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::BrickG):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickG, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::brickG, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::BrickB):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickB, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::brickB, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::BrickP):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickP, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::brickP, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::BrickW):
-                            dest.push_back(new platformer::stationaryStaticBlock(platformer::blocks::brickW, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
+                            dest.push_back(platformer::stationaryStaticBlock(platformer::blocks::brickW, parsableArguments.at(0), parsableArguments.at(1), 64, 64, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::AccessPoint):
-                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::accessPoint, parsableArguments.at(0), (parsableArguments.at(1)), 128, 128, nullptr, parsableArguments.at(3)));
+                            aDest.push_back(platformer::stationaryAnimatedBlock(platformer::blocks::accessPoint, parsableArguments.at(0), (parsableArguments.at(1)), 128, 128, nullptr, parsableArguments.at(3)));
                             break;
                         case (platformer::valuesOfBlocks::SusJuice):
-                            aDest.push_back(new platformer::stationaryAnimatedBlock(platformer::blocks::susJuice, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
+                            aDest.push_back(platformer::stationaryAnimatedBlock(platformer::blocks::susJuice, parsableArguments.at(0), (parsableArguments.at(1)), 64, 64, nullptr, parsableArguments.at(3)));
                             break;
                         default:
                             break;
@@ -223,7 +223,7 @@ namespace platformer
             }
             for (int i = 0; i < aDest.size(); i++)
             {
-                aDest.at(i)->computeRay(dest);
+                aDest.at(i).computeRay(dest);
             }
         }
     }

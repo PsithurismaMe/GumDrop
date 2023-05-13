@@ -265,7 +265,7 @@ namespace platformer
             return iteratorOffset;
         }
         // Computes the max distance a laser beam will travel. Gives up if it exceeds 4096 pixels
-        void computeRay(std::vector<stationaryStaticBlock *> obstecules)
+        void computeRay(std::vector<stationaryStaticBlock> obstecules)
         {
             Vector2 origion;
             int lowest{4096};
@@ -280,7 +280,7 @@ namespace platformer
             endOfRay = p2;
             for (size_t i = 0; i < obstecules.size(); i++)
             {
-                Vector2 cache = obstecules.at(i)->getPosition();
+                Vector2 cache = obstecules.at(i).getPosition();
                 cache.x += halfSpriteWidth;
                 cache.y += halfSpriteWidth;
                 if (CheckCollisionPointLine(cache, p1, p2, halfSpriteWidth + 1))
@@ -475,7 +475,7 @@ namespace platformer
             // This is slightly smaller than the actual sprite because floating point approximation limitations
             return {(inGamePositionDimension.x) + (velocity.x * timeDelta * xAxisOverride), (inGamePositionDimension.y + 23) + (velocity.y * timeDelta * yAxisOverride), 63, 41};
         }
-        void doPhysicsStep(std::vector<stationaryStaticBlock *> &staticBlocks, std::vector<stationaryAnimatedBlock *> &animatedBlocks, float frameDelta, std::string &file, platformer::animatedText &aniText)
+        void doPhysicsStep(std::vector<stationaryStaticBlock> &staticBlocks, std::vector<stationaryAnimatedBlock> &animatedBlocks, float frameDelta, std::string &file, platformer::animatedText &aniText)
         {
             velocity.y += 1 * dragCoefficent.y * frameDelta;
             velocity.x > 0 ? velocity.x -= 1 *dragCoefficent.x *frameDelta : velocity.x += 1 * dragCoefficent.x * frameDelta;
@@ -505,9 +505,9 @@ namespace platformer
             int indexes[3] = {-1, -1, -1};
             for (size_t i = 0; i < staticBlocks.size() && indexes[0] == -1; i++)
             {
-                if (staticBlocks.at(i)->getVisibility())
+                if (staticBlocks.at(i).getVisibility())
                 {
-                    xAxisWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 0), staticBlocks.at(i)->getRectangle());
+                    xAxisWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 0), staticBlocks.at(i).getRectangle());
                     if (xAxisWillCollide)
                     {
                         indexes[0] = i;
@@ -517,9 +517,9 @@ namespace platformer
             }
             for (size_t i = 0; i < staticBlocks.size() && indexes[1] == -1; i++)
             {
-                if (staticBlocks.at(i)->getVisibility())
+                if (staticBlocks.at(i).getVisibility())
                 {
-                    yAxisWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 0, 1), staticBlocks.at(i)->getRectangle());
+                    yAxisWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 0, 1), staticBlocks.at(i).getRectangle());
                     if (yAxisWillCollide)
                     {
                         break;
@@ -528,9 +528,9 @@ namespace platformer
             }
             for (size_t i = 0; i < staticBlocks.size() && indexes[2] == -1; i++)
             {
-                if (staticBlocks.at(i)->getVisibility())
+                if (staticBlocks.at(i).getVisibility())
                 {
-                    cWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), staticBlocks.at(i)->getRectangle());
+                    cWillCollide = CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), staticBlocks.at(i).getRectangle());
                     if (cWillCollide)
                     {
                         indexes[2] = i;
@@ -540,10 +540,10 @@ namespace platformer
             }
             for (int i = 0; i < animatedBlocks.size(); i++)
             {
-                if (animatedBlocks.at(i)->getType() == valuesOfBlocks::LaserNoTimeOffset && animatedBlocks.at(i)->getFrameDisplayed() == 1)
+                if (animatedBlocks.at(i).getType() == valuesOfBlocks::LaserNoTimeOffset && animatedBlocks.at(i).getFrameDisplayed() == 1)
                 {
-                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
-                    deadlyWillCollide = CheckCollisionPointLine({getPredictedPosition(frameDelta, 1, 1).x + 32, getPredictedPosition(frameDelta, 1, 1).y}, animatedBlocks.at(i)->getRayBegin(), animatedBlocks.at(i)->getRayEnd(), 32);
+                    Rectangle cache = animatedBlocks.at(i).getRectangle();
+                    deadlyWillCollide = CheckCollisionPointLine({getPredictedPosition(frameDelta, 1, 1).x + 32, getPredictedPosition(frameDelta, 1, 1).y}, animatedBlocks.at(i).getRayBegin(), animatedBlocks.at(i).getRayEnd(), 32);
                     if (deadlyWillCollide)
                     {
                         deathCount++;
@@ -554,9 +554,9 @@ namespace platformer
                         break;
                     }
                 }
-                else if (animatedBlocks.at(i)->getType() == valuesOfBlocks::Lava)
+                else if (animatedBlocks.at(i).getType() == valuesOfBlocks::Lava)
                 {
-                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
+                    Rectangle cache = animatedBlocks.at(i).getRectangle();
                     if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
                     {
                         deathCount++;
@@ -567,9 +567,9 @@ namespace platformer
                         break;
                     }
                 }
-                else if (animatedBlocks.at(i)->getType() == valuesOfBlocks::Portal)
+                else if (animatedBlocks.at(i).getType() == valuesOfBlocks::Portal)
                 {
-                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
+                    Rectangle cache = animatedBlocks.at(i).getRectangle();
                     if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
                     {
                         int o = std::stoi(file);
@@ -580,9 +580,9 @@ namespace platformer
                         break;
                     }
                 }
-                else if (animatedBlocks.at(i)->getType() == valuesOfBlocks::SusJuice)
+                else if (animatedBlocks.at(i).getType() == valuesOfBlocks::SusJuice)
                 {
-                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
+                    Rectangle cache = animatedBlocks.at(i).getRectangle();
                     if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
                     {
                         chance++;
@@ -591,9 +591,9 @@ namespace platformer
                         break;
                     }
                 }
-                else if (animatedBlocks.at(i)->getType() == valuesOfBlocks::AccessPoint)
+                else if (animatedBlocks.at(i).getType() == valuesOfBlocks::AccessPoint)
                 {
-                    Rectangle cache = animatedBlocks.at(i)->getRectangle();
+                    Rectangle cache = animatedBlocks.at(i).getRectangle();
                     if (CheckCollisionRecs(getPredictedPosition(frameDelta, 1, 1), {cache.x + 4, cache.y + 4, cache.width - 8, cache.height - 8}))
                     {
                         checkpoint.x = inGamePositionDimension.x;

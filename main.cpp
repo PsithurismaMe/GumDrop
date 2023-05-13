@@ -24,8 +24,8 @@ int main(int argc, char **argv)
     platformer::ui::init();
     platformer::music::init();
     PlayMusicStream(*platformer::music::activeMusic);
-    std::vector<platformer::stationaryStaticBlock *> staticBlocks;
-    std::vector<platformer::stationaryAnimatedBlock *> animatedBlocks;
+    std::vector<platformer::stationaryStaticBlock> staticBlocks;
+    std::vector<platformer::stationaryAnimatedBlock> animatedBlocks;
     while (isRunning)
     {
         // Warn the user that this multithreaded program may not run correctly on old systems.
@@ -59,23 +59,23 @@ int main(int argc, char **argv)
                                 {
                                     for (size_t i = 0; i < staticBlocks.size(); i++)
                                     {
-                                        Vector2 cache = GetWorldToScreen2D(staticBlocks.at(i)->getPosition(), platformer::blocks::inGameCamera);
+                                        Vector2 cache = GetWorldToScreen2D(staticBlocks.at(i).getPosition(), platformer::blocks::inGameCamera);
                                         if (cache.x < resolution.x && cache.x > -64 && cache.y < resolution.y && cache.y > -64)
                                         {
-                                            staticBlocks.at(i)->setVisibility(1);
-                                            //float distance = sqrt((pow((staticBlocks.at(i)->getPosition().x - platformer::blocks::inGameCamera.target.x), 2) + pow((staticBlocks.at(i)->getPosition().y - platformer::blocks::inGameCamera.target.y), 2)));
-                                            //staticBlocks.at(i)->setAlpha(((1152.0f - distance) / 1152.0f) * 255);
+                                            staticBlocks.at(i).setVisibility(1);
+                                            //float distance = sqrt((pow((staticBlocks.at(i).getPosition().x - platformer::blocks::inGameCamera.target.x), 2) + pow((staticBlocks.at(i).getPosition().y - platformer::blocks::inGameCamera.target.y), 2)));
+                                            //staticBlocks.at(i).setAlpha(((1152.0f - distance) / 1152.0f) * 255);
                                         }
                                         else
                                         {
-                                            staticBlocks.at(i)->setVisibility(0);
+                                            staticBlocks.at(i).setVisibility(0);
                                         }
                                     }
                                     
                                     //for (size_t i = 0; i < animatedBlocks.size(); i++)
                                     //{
-                                    //    float distance = sqrt((pow((animatedBlocks.at(i)->getPosition().x - platformer::blocks::inGameCamera.target.x), 2) + pow((animatedBlocks.at(i)->getPosition().y - platformer::blocks::inGameCamera.target.y), 2)));
-                                    //    animatedBlocks.at(i)->setAlpha(((1152.0f - distance) / 1152.0f) * 255);
+                                    //    float distance = sqrt((pow((animatedBlocks.at(i).getPosition().x - platformer::blocks::inGameCamera.target.x), 2) + pow((animatedBlocks.at(i).getPosition().y - platformer::blocks::inGameCamera.target.y), 2)));
+                                    //    animatedBlocks.at(i).setAlpha(((1152.0f - distance) / 1152.0f) * 255);
                                     //}
                                     
                                 }           
@@ -85,10 +85,10 @@ int main(int argc, char **argv)
         std::thread every16ms(platformer::blocks::Every16Milliseconds, std::ref(staticBlocks), std::ref(animatedBlocks), std::ref(player), std::ref(workerStatus), std::ref(platformer::settings::activeKeypresses), std::ref(tickRate), std::ref(filename), std::ref(animatedText), std::ref(time));
         for (int i = 0; i < animatedBlocks.size(); i++)
         {
-            animatedBlocks.at(i)->setIterablePointer(&globalIterables[1]);
-            if (animatedBlocks.at(i)->getType() == platformer::Lava || animatedBlocks.at(i)->getType() == platformer::SusJuice)
+            animatedBlocks.at(i).setIterablePointer(&globalIterables[1]);
+            if (animatedBlocks.at(i).getType() == platformer::Lava || animatedBlocks.at(i).getType() == platformer::SusJuice)
             {
-                animatedBlocks.at(i)->setIteratorOffset(i);
+                animatedBlocks.at(i).setIteratorOffset(i);
             }
         }
         console.assignPointers(&resolution, &mousePosition, &hypotenuse, &keypress, &filename, &animatedText, &time, &player);
@@ -115,24 +115,24 @@ int main(int argc, char **argv)
                 // Draw laser beams
                 for (int i = 0; i < animatedBlocks.size(); i++)
                 {
-                    if (animatedBlocks.at(i)->getType() == platformer::valuesOfBlocks::LaserNoTimeOffset && animatedBlocks.at(i)->getFrameDisplayed() == 1)
+                    if (animatedBlocks.at(i).getType() == platformer::valuesOfBlocks::LaserNoTimeOffset && animatedBlocks.at(i).getFrameDisplayed() == 1)
                     {
-                        animatedBlocks.at(i)->setIterablePointer(&globalIterables[0]);
-                        DrawLineEx(animatedBlocks.at(i)->getRayBegin(), animatedBlocks.at(i)->getRayEnd(), 28, {0, 255, 0, 255});
+                        animatedBlocks.at(i).setIterablePointer(&globalIterables[0]);
+                        DrawLineEx(animatedBlocks.at(i).getRayBegin(), animatedBlocks.at(i).getRayEnd(), 28, {0, 255, 0, 255});
                     }
                 }
                 // Draw regular blocks
                 for (int i = 0; i < staticBlocks.size(); i++)
                 {
-                    if (staticBlocks.at(i)->getVisibility())
+                    if (staticBlocks.at(i).getVisibility())
                     {
-                        staticBlocks.at(i)->draw(spritesheet);
+                        staticBlocks.at(i).draw(spritesheet);
                     }
                 }
                 // Draw other animated blocks
                 for (int i = 0; i < animatedBlocks.size(); i++)
                 {
-                    animatedBlocks.at(i)->draw(spritesheet);
+                    animatedBlocks.at(i).draw(spritesheet);
                 }
                 player.draw(spritesheet);
                 EndMode2D();
@@ -171,15 +171,6 @@ int main(int argc, char **argv)
         everyOneSec.join();
         every16ms.join();
         optimization.join();
-        // Avoid memory leaks
-        for (int i = 0; i < staticBlocks.size(); i++)
-        {
-            delete staticBlocks.at(i);
-        }
-        for (int i = 0; i < animatedBlocks.size(); i++)
-        {
-            delete animatedBlocks.at(i);
-        }
         staticBlocks.clear();
         animatedBlocks.clear();
     }
