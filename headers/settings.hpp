@@ -22,7 +22,7 @@ namespace platformer
             /*
 
             NOTICE: Some songs have been excluded from this git repository due to incompatible licensing.
-            If you wish to use other music, AT YOUR OWN RISK DO THE FOLLOWING,
+            If you wish to use other music, do the following,
 
             1. Obtain a DRM free copy of the music and transcode it if necessary to a codec supported by the [raudio raylib module](https://github.com/raysan5/raylib/blob/master/src/raudio.c)
             2. Place it in assets/music/
