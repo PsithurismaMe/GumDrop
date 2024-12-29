@@ -1,3 +1,7 @@
+# About
+This project was started in High School as a personal project. I wanted to develop a video game, but no game engine worked exactly the way I wanted it to, which was to use C++ as a scripting language, so I decided to write the game without an engine, just using raylib and C++. This project put my basic knowledge of trigonometry and physics to a test, and I was able to create a platformer with it, albeit with not the greatest physics. The game assets were also self-drawn.
+
+
 # Manual
 
 | Table of contents |
